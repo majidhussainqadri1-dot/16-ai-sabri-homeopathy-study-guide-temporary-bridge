@@ -1,0 +1,45 @@
+name: Baseline Integrity
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Verify plugin file checksums
+        shell: bash
+        run: sha256sum --check --strict CHECKSUMS.sha256
+
+      - name: Lint PHP files
+        shell: bash
+        run: |
+          find ai-study-guide-bridge -type f -name '*.php' -print0 | sort -z | xargs -0 -n1 php -l
+
+      - name: Check JavaScript syntax
+        shell: bash
+        run: node --check ai-study-guide-bridge/assets/js/study-guide.js
+
+      - name: Validate required package structure
+        shell: bash
+        run: |
+          test -f ai-study-guide-bridge/ai-study-guide-bridge.php
+          test -f ai-study-guide-bridge/readme.txt
+          test -f ai-study-guide-bridge/uninstall.php
+          test -d ai-study-guide-bridge/includes
+          test -d ai-study-guide-bridge/templates
+          test -d ai-study-guide-bridge/assets/css
+          test -d ai-study-guide-bridge/assets/js

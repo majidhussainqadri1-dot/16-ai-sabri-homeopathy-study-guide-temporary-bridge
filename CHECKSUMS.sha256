@@ -1,0 +1,14 @@
+cff828f931ec1babf1815bc345554e9db4b59d21963c8d2a85aeb0bf3e78ebb2  ai-study-guide-bridge/ai-study-guide-bridge.php
+5b4762a74202143a9676f53df392765c5ca752ac2e9aec4cb424479b5329db99  ai-study-guide-bridge/assets/css/study-guide.css
+fe77ed5a2994ec28407f00ba3fd69e432706ee7ac1dad30b924d56a5825efad8  ai-study-guide-bridge/assets/js/study-guide.js
+db729fdc292684754d9e32124fc96cb6a13c27ae85eda47705cef2159001b55c  ai-study-guide-bridge/includes/class-sai-activator.php
+67a078ab54806df8fda6c944449fa2d756d39dd2eb29368539b81d8f2a22cbc1  ai-study-guide-bridge/includes/class-sai-admin.php
+7c72451a0b7a4d0b544b7e2b6419a314159786c437c810c7be193ba7cf6289d3  ai-study-guide-bridge/includes/class-sai-frontend.php
+c6091d95452d8bbc9312c633f950e500f259d3639cd5d34181c319dd744fba4a  ai-study-guide-bridge/includes/class-sai-helpers.php
+69f64d18fe76b027b5cf73c538d0bb053a938b7c976f752f5613e78757be3507  ai-study-guide-bridge/includes/class-sai-plugin.php
+dae4f946ec95fb9a847124ada3ef4a443f679b52438c27d6638fb2ec492bc661  ai-study-guide-bridge/includes/class-sai-privacy.php
+125f6077c49738b3c8b47e530afd2268e5b66f759e3fe77840a5f242a4891e15  ai-study-guide-bridge/includes/class-sai-provider.php
+8d8f98dc13cd1e1eafa85841ff818e691c14e11133dbe1d12bf2c1021883d747  ai-study-guide-bridge/readme.txt
+a08067a8add0c1195a8b3e217402a295037b0934282a0b0cb5c86016ecc3fa8b  ai-study-guide-bridge/templates/floating-modal.php
+0ec12eb4ba70ec08d34c4c4307e4c7d4cb27207d796a20ed7eac070bc1a17f77  ai-study-guide-bridge/templates/study-guide.php
+0254b34d8de6b1e2bcd66557203b4432bdf1ee757797eabc355957822718dbbe  ai-study-guide-bridge/uninstall.php
