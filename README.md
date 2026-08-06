@@ -1,27 +1,42 @@
-# File 16 — AI Sabri Homeopathy Study Guide Temporary Bridge
+# File 16 — Sabri Classical Homeopathy AI
 
-Official source repository for **File 16** of the **Sabri Social Homeopathy Platform**.
+Production-oriented WordPress implementation of **File 16** for the **Sabri Social Homeopathy Platform**.
 
-## Plugin
+## Release status
 
-- **Name:** AI Sabri Homeopathy Study Guide Temporary Bridge
-- **Version:** 0.1.0
-- **WordPress folder:** `ai-study-guide-bridge`
-- **Purpose:** Provide a branded, accessible, temporary bridge from the Sabri Social Homeopathy Platform to the approved AI Sabri Homeopathy Study Guide hosted on ChatGPT while the native platform AI is developed.
+- Software version: **1.0.0**
+- Schema version: **1.1.0**
+- Plan: **SSH-F16-PLAN-2026-v1.0**
+- Canonical plugin folder: `16-sabri-classical-homeopathy-ai`
+- Public route: `/ai/`
+- Private routes: `/ai/session/{uuid}/`, `/ai/history/`
+- Governance route: `/ai/governance/`
 
-## Baseline capabilities
+This repository implements both the governed temporary Custom GPT bridge and the native source-linked AI foundation. It does not claim staging acceptance, production deployment, configured provider availability, or an approved populated corpus without corresponding environment evidence.
 
-- Branded public Study Guide page
-- Main navigation integration
-- Home Page floating access button and accessible modal
-- Best-effort iframe attempt with a permanent secure external fallback
-- Strict `chatgpt.com/g/` URL validation
-- Settings page for bridge controls
-- Medical-safety and privacy notices
-- `noindex` and `noarchive` controls for the temporary bridge
-- Provider abstraction reserved for a future native AI module
-- No API key and no native AI implementation in this release
+## Implemented capability domains
 
-## Governance
+- Separate AI entitlement and quota controls
+- Account-owned and cryptographically bound guest sessions
+- Prompt intake, multilingual safety classification, PII redaction and prompt-injection resistance
+- Approved, versioned, licensed and access-labelled corpus registry
+- Chunking, indexing, lexical retrieval and source provenance
+- Citation validation and evidence-insufficient fail-closed behavior
+- Local extractive provider, strict Custom GPT bridge and allowlisted HTTPS JSON provider
+- Provider/model abstraction, cost budget, rate limits and usage ledger
+- Retention, export, erasure, feedback, escalation and WordPress privacy integration
+- Evaluation suite, health report, audit trail, transactional-style outbox and operational metrics
+- Accessible responsive UI, RTL support, green primary visual identity and shared-shell integration contracts
 
-The supplied File 16 baseline will be imported through a review branch. Baseline import does not by itself mean production acceptance.
+## Local verification
+
+```bash
+bash scripts/verify.sh
+bash scripts/build.sh
+```
+
+The build script creates a deterministic ZIP and SHA-256 checksum under `dist/`.
+
+## Deployment boundary
+
+Install and test on the approved staging site first. Production activation requires a restorable backup, migration verification, provider/corpus configuration, real-role journey tests, security and privacy acceptance, rollback proof, and Founder approval.
