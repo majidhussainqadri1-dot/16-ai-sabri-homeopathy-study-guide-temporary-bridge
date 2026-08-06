@@ -1,0 +1,1 @@
+(() => { 'use strict'; document.addEventListener('DOMContentLoaded', () => document.querySelectorAll('.scha-inline-form button').forEach((button) => { if (button.textContent.toLowerCase().includes('retract')) button.addEventListener('click', (event) => { if (!window.confirm('Retract this source from future retrieval?')) event.preventDefault(); }); })); })();

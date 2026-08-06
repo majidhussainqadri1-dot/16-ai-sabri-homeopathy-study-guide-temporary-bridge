@@ -1,0 +1,5 @@
+Sabri Classical Homeopathy AI is licensed under the GNU General Public License, version 2 or any later version.
+
+Copyright (c) 2026 Dr. Allamah Majid Hussain Sabri Muhaddith Mursheed.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for details.

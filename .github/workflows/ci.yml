@@ -1,0 +1,32 @@
+name: File 16 CI
+
+on:
+  push:
+    branches: [main, 'codex/**']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Verify source and contracts
+        run: bash scripts/verify.sh
+      - name: Build deterministic package
+        run: bash scripts/build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: file-16-package
+          path: |
+            dist/*.zip
+            dist/*.sha256
+            dist/manifest.json
