@@ -24,8 +24,8 @@ jobs:
           echo '9b16d393bc8710d2d34f39efe50eba2ae7edf42a9d4d70ef06d760b6824e4584  /tmp/review40-overlay.tar.gz' | sha256sum -c -
           tar -xzf /tmp/review40-overlay.tar.gz -C .
           rm -rf .review40-payload
-          rm -f .github/workflows/apply-review40.yml
           chmod +x scripts/*.sh
+          git checkout HEAD -- .github/workflows/ci.yml .github/workflows/apply-review40.yml
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
