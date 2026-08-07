@@ -1,8 +1,7 @@
-name: File 16 CI
+name: File 16 Four-Plan CI
 
 on:
   push:
-    branches: [main, 'codex/**']
   pull_request:
 
 permissions:
@@ -15,18 +14,23 @@ jobs:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.1'
+          php-version: '8.3'
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
       - name: Verify source and contracts
         run: bash scripts/verify.sh
-      - name: Build deterministic package
-        run: bash scripts/build.sh
-      - uses: actions/upload-artifact@v4
-        with:
-          name: file-16-package
-          path: |
-            dist/*.zip
-            dist/*.sha256
-            dist/manifest.json
+      - name: Build twice and compare
+        run: |
+          SOURCE_DATE_EPOCH=1786075200 bash scripts/build.sh
+          cp dist/16-sabri-classical-homeopathy-ai-2.1.0.zip /tmp/first.zip
+          SOURCE_DATE_EPOCH=1786075200 bash scripts/build.sh
+          cmp /tmp/first.zip dist/16-sabri-classical-homeopathy-ai-2.1.0.zip
+      - name: Clean extract retest
+        run: |
+          mkdir /tmp/scha-clean
+          unzip -q dist/16-sabri-classical-homeopathy-ai-2.1.0.zip -d /tmp/scha-clean
+          find /tmp/scha-clean -name '*.php' -print0 | xargs -0 -n1 php -l >/dev/null
+          test -f /tmp/scha-clean/16-sabri-classical-homeopathy-ai/16-sabri-classical-homeopathy-ai.php
+      - name: Archive integrity
+        run: unzip -t dist/16-sabri-classical-homeopathy-ai-2.1.0.zip
