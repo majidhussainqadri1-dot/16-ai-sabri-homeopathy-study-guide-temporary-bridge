@@ -1,0 +1,53 @@
+name: Materialize File 16 Corrective Tree
+
+on:
+  push:
+    branches:
+      - audit/file16-four-plan-correction-20260807
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    if: ${{ hashFiles('.materialize/file16-part-*') != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Reconstruct reviewed source tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .materialize/file16-part-* | base64 --decode > /tmp/file16-reviewed.tar.gz
+          rm -rf 16-sabri-classical-homeopathy-ai scripts tests dist
+          rm -f README.md IMPLEMENTATION-REPORT.md .github/workflows/ci.yml
+          tar -xzf /tmp/file16-reviewed.tar.gz -C .
+          rm -rf .materialize
+          rm -f .github/workflows/materialize-file16.yml
+      - name: Verify four-plan candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/verify.sh
+          SOURCE_DATE_EPOCH=1786075200 bash scripts/build.sh
+          cp dist/16-sabri-classical-homeopathy-ai-2.1.0.zip /tmp/file16-first.zip
+          SOURCE_DATE_EPOCH=1786075200 bash scripts/build.sh
+          cmp /tmp/file16-first.zip dist/16-sabri-classical-homeopathy-ai-2.1.0.zip
+          rm -rf /tmp/file16-clean
+          mkdir -p /tmp/file16-clean
+          unzip -q dist/16-sabri-classical-homeopathy-ai-2.1.0.zip -d /tmp/file16-clean
+          find /tmp/file16-clean -name '*.php' -print0 | xargs -0 -n1 php -l >/dev/null
+          node --check /tmp/file16-clean/16-sabri-classical-homeopathy-ai/assets/js/public.js
+          node --check /tmp/file16-clean/16-sabri-classical-homeopathy-ai/assets/js/admin.js
+          unzip -t dist/16-sabri-classical-homeopathy-ai-2.1.0.zip >/dev/null
+      - name: Commit materialized reviewed source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Materialize File 16 four-plan corrective release 2.1.0"
+          git push origin HEAD:audit/file16-four-plan-correction-20260807
