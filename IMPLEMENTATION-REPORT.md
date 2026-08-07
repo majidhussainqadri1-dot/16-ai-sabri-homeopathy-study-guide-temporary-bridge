@@ -1,19 +1,12 @@
-# File 16 Completion Report
+# File 16 Implementation Report — 2026-08-07
 
-## Before this implementation
+Four review-and-correction rounds were performed against:
 
-The default branch contained only a baseline README for a version 0.1.0 temporary bridge. No WordPress plugin source, schema, REST API, native retrieval, citation gate, entitlement control, privacy lifecycle, tests, package or CI existed.
+1. Definitive Integrated Master Plan v3.0
+2. Recovered Directives v2.1
+3. Continuous Value / Global Top-20 Superset v1.0
+4. File 16 Complete Master Plan v1.0
 
-## After this implementation
+Release 2.1.0 corrects the superseded paid-access model, adds fail-closed current membership claims, guest HMAC authorization, encrypted session messages, output safety, legal hold, Claude provider, assistant modes, four-slot AI Teacher, 30-day mandatory review, canonical publication/search/shell contracts, accessibility/RTL/low-bandwidth controls, schema 2.1.0, four-plan tests and deterministic package evidence.
 
-The repository contains the complete reviewable File 16 software baseline, 19-requirement traceability, two review-and-fix rounds, automated verification, deterministic ZIP/checksum and deployment/rollback documentation.
-
-## Honest lifecycle status
-
-- Specified: complete
-- Coded: complete under repository scope
-- Packaged: complete
-- Local automated QA: green
-- Staging accepted: pending external Hostinger staging execution
-- Live deployed: pending authorization
-- Operational: pending real provider/corpus/users/monitoring/support evidence
+See `16-sabri-classical-homeopathy-ai/docs/FOUR-PLAN-AUDIT-2026-08-07.md` for defects and corrections. External staging/live gates remain open until separately evidenced.

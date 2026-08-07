@@ -23,36 +23,63 @@ final class SCHA_Privacy_Tools {
 
     public static function exporter( string $email_address, int $page = 1 ): array {
         global $wpdb;
+
         $user = get_user_by( 'email', $email_address );
-        if ( ! $user ) return array( 'data' => array(), 'done' => true );
-        $page = max( 1, $page );
-        $offset = ( $page - 1 ) * self::PAGE_SIZE;
+        if ( ! $user ) {
+            return array( 'data' => array(), 'done' => true );
+        }
+
+        $page     = max( 1, $page );
+        $offset   = ( $page - 1 ) * self::PAGE_SIZE;
         $sessions = SCHA_Database::table( 'sessions' );
-        $rows = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $sessions WHERE owner_id=%d ORDER BY id ASC LIMIT %d OFFSET %d", $user->ID, self::PAGE_SIZE, $offset ), ARRAY_A ) ?: array();
+        $rows     = $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT * FROM $sessions WHERE owner_id=%d ORDER BY id ASC LIMIT %d OFFSET %d",
+                $user->ID,
+                self::PAGE_SIZE,
+                $offset
+            ),
+            ARRAY_A
+        ) ?: array();
+
         $data = array();
         foreach ( $rows as $session ) {
+            $public = SCHA_Session_Service::public_session( $session );
+            $messages = SCHA_Session_Service::messages( absint( $session['id'] ), 200 );
             $data[] = array(
-                'group_id' => 'scha-ai-sessions',
+                'group_id'    => 'scha-ai-sessions',
                 'group_label' => __( 'Sabri Classical Homeopathy AI sessions', SCHA_TEXT_DOMAIN ),
-                'item_id' => 'scha-ai-session-' . $session['public_id'],
-                'data' => array(
-                    array( 'name' => __( 'Session metadata', SCHA_TEXT_DOMAIN ), 'value' => wp_json_encode( SCHA_Session_Service::public_session( $session ), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT ) ),
-                    array( 'name' => __( 'Messages', SCHA_TEXT_DOMAIN ), 'value' => wp_json_encode( SCHA_Session_Service::messages( absint( $session['id'] ), 200 ), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT ) ),
+                'item_id'     => 'scha-ai-session-' . $session['public_id'],
+                'data'        => array(
+                    array( 'name' => __( 'Session metadata', SCHA_TEXT_DOMAIN ), 'value' => wp_json_encode( $public, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT ) ),
+                    array( 'name' => __( 'Messages', SCHA_TEXT_DOMAIN ), 'value' => wp_json_encode( $messages, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT ) ),
                 ),
             );
         }
-        return array( 'data' => $data, 'done' => count( $rows ) < self::PAGE_SIZE );
+
+        return array(
+            'data' => $data,
+            'done' => count( $rows ) < self::PAGE_SIZE,
+        );
     }
 
     public static function eraser( string $email_address, int $page = 1 ): array {
         global $wpdb;
+
         $user = get_user_by( 'email', $email_address );
-        if ( ! $user ) return array( 'items_removed' => false, 'items_retained' => false, 'messages' => array(), 'done' => true );
+        if ( ! $user ) {
+            return array( 'items_removed' => false, 'items_retained' => false, 'messages' => array(), 'done' => true );
+        }
+
         $sessions = SCHA_Database::table( 'sessions' );
         $messages = SCHA_Database::table( 'messages' );
-        $usage = SCHA_Database::table( 'usage' );
+        $usage    = SCHA_Database::table( 'usage' );
         $feedback = SCHA_Database::table( 'feedback' );
-        $rows = $wpdb->get_results( $wpdb->prepare( "SELECT id,public_id,provider FROM $sessions WHERE owner_id=%d ORDER BY id ASC LIMIT %d", $user->ID, self::PAGE_SIZE ), ARRAY_A ) ?: array();
+        $rows = $wpdb->get_results(
+            $wpdb->prepare( "SELECT id,public_id,provider FROM $sessions WHERE owner_id=%d AND legal_hold=0 ORDER BY id ASC LIMIT %d", $user->ID, self::PAGE_SIZE ),
+            ARRAY_A
+        ) ?: array();
+
         $removed = false;
         foreach ( $rows as $session ) {
             do_action( 'scha_provider_delete_session', $session['public_id'], $session['provider'] );
@@ -75,13 +102,25 @@ final class SCHA_Privacy_Tools {
                 return array( 'items_removed' => $removed, 'items_retained' => true, 'messages' => array( __( 'One or more AI sessions could not be erased safely. Please retry or review the system log.', SCHA_TEXT_DOMAIN ) ), 'done' => false );
             }
         }
-        return array( 'items_removed' => $removed, 'items_retained' => false, 'messages' => array(), 'done' => count( $rows ) < self::PAGE_SIZE );
+
+        $remaining_deletable = absint( $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $sessions WHERE owner_id=%d AND legal_hold=0", $user->ID ) ) );
+        $held = absint( $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $sessions WHERE owner_id=%d AND legal_hold=1", $user->ID ) ) );
+        $messages_out = $held > 0 ? array( sprintf( _n( '%d AI session is retained under an authorized legal or security hold.', '%d AI sessions are retained under authorized legal or security holds.', $held, SCHA_TEXT_DOMAIN ), $held ) ) : array();
+
+        return array(
+            'items_removed'  => $removed,
+            'items_retained' => $held > 0,
+            'messages'       => $messages_out,
+            'done'           => 0 === $remaining_deletable,
+        );
     }
 
     public static function add_policy_content(): void {
-        if ( ! function_exists( 'wp_add_privacy_policy_content' ) ) return;
+        if ( ! function_exists( 'wp_add_privacy_policy_content' ) ) {
+            return;
+        }
         $content = '<p>' . esc_html__( 'Sabri Classical Homeopathy AI stores account-owned session metadata, questions, answers, citations, feedback, usage counts, and retention dates to provide the requested educational AI service. External providers receive only the minimum approved and redacted content required for a request when an administrator has enabled such a provider. The plugin does not enable provider training by default and excludes private clinical records, private messages, identity evidence, and private saved studies from the AI corpus.', SCHA_TEXT_DOMAIN ) . '</p>';
-        $content .= '<p>' . esc_html__( 'Users may export or erase their AI session data through WordPress privacy tools. Security audit records may be retained separately when necessary for integrity, abuse prevention, or legal obligations, without retaining raw prompts in audit context.', SCHA_TEXT_DOMAIN ) . '</p>';
+        $content .= '<p>' . esc_html__( 'Users may export or erase their AI session data through WordPress privacy tools. Message content is encrypted at rest. An authorized legal or security hold can temporarily retain a session, and security audit records may be retained separately when necessary for integrity, abuse prevention, or legal obligations, without retaining raw prompts in audit context.', SCHA_TEXT_DOMAIN ) . '</p>';
         wp_add_privacy_policy_content( __( 'Sabri Classical Homeopathy AI', SCHA_TEXT_DOMAIN ), wp_kses_post( $content ) );
     }
 }

@@ -1,42 +1,17 @@
 # File 16 — Sabri Classical Homeopathy AI
 
-Production-oriented WordPress implementation of **File 16** for the **Sabri Social Homeopathy Platform**.
+Canonical WordPress package: `16-sabri-classical-homeopathy-ai`  
+Corrective release: **2.1.0** / schema **2.1.0**
 
-## Release status
+This release implements the four-plan File 16 repository scope: one complete free tier with no donor advantage; source-linked role-aware AI sessions; approved corpus/retrieval/citations; provider/model abstraction including Claude and the temporary Custom GPT bridge; input/output clinical and privacy safety; encrypted session storage; retention/export/erasure/legal hold; evaluations/observability; and the governed institutional AI Homeopathy Teacher with four daily slots and human/canonical-owner publication gates.
 
-- Software version: **1.0.0**
-- Schema version: **1.1.0**
-- Plan: **SSH-F16-PLAN-2026-v1.0**
-- Canonical plugin folder: `16-sabri-classical-homeopathy-ai`
-- Public route: `/ai/`
-- Private routes: `/ai/session/{uuid}/`, `/ai/history/`
-- Governance route: `/ai/governance/`
+The current GitHub repository name is a historical compatibility alias. The plugin/package folder, WordPress slug/text domain and `SCHA_` namespace follow the dedicated File 16 plan.
 
-This repository implements both the governed temporary Custom GPT bridge and the native source-linked AI foundation. It does not claim staging acceptance, production deployment, configured provider availability, or an approved populated corpus without corresponding environment evidence.
-
-## Implemented capability domains
-
-- Separate AI entitlement and quota controls
-- Account-owned and cryptographically bound guest sessions
-- Prompt intake, multilingual safety classification, PII redaction and prompt-injection resistance
-- Approved, versioned, licensed and access-labelled corpus registry
-- Chunking, indexing, lexical retrieval and source provenance
-- Citation validation and evidence-insufficient fail-closed behavior
-- Local extractive provider, strict Custom GPT bridge and allowlisted HTTPS JSON provider
-- Provider/model abstraction, cost budget, rate limits and usage ledger
-- Retention, export, erasure, feedback, escalation and WordPress privacy integration
-- Evaluation suite, health report, audit trail, transactional-style outbox and operational metrics
-- Accessible responsive UI, RTL support, green primary visual identity and shared-shell integration contracts
-
-## Local verification
+## Verify
 
 ```bash
 bash scripts/verify.sh
 bash scripts/build.sh
 ```
 
-The build script creates a deterministic ZIP and SHA-256 checksum under `dist/`.
-
-## Deployment boundary
-
-Install and test on the approved staging site first. Production activation requires a restorable backup, migration verification, provider/corpus configuration, real-role journey tests, security and privacy acceptance, rollback proof, and Founder approval.
+Repository completion does not equal Hostinger staging, live deployment or operational acceptance. See the release checklist and four-plan audit.

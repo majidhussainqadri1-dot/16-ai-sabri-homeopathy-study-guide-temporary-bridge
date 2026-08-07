@@ -8,7 +8,7 @@ final class SCHA_Observability {
     }
 
     public static function metric( string $name, int $amount = 1 ): void {
-        $allowed = array( 'requests', 'answers', 'refusals', 'errors', 'citation_failures', 'rate_limited', 'provider_failures', 'feedback' );
+        $allowed = array( 'requests', 'answers', 'refusals', 'errors', 'citation_failures', 'rate_limited', 'provider_failures', 'output_policy_failures', 'feedback' );
         if ( ! in_array( $name, $allowed, true ) ) {
             return;
         }
@@ -45,23 +45,33 @@ final class SCHA_Observability {
         self::metric( 'errors' );
         if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
             $message = $error instanceof Throwable ? $error->getMessage() : (string) $error;
-            error_log( wp_json_encode( array( 'component' => 'scha', 'trace_id' => $trace_id, 'error' => substr( wp_strip_all_tags( $message ), 0, 500 ) ) ) );
+            error_log( wp_json_encode( array( 'component' => 'scha', 'trace_id' => $trace_id, 'error' => substr( SCHA_Privacy::inspect_and_redact( wp_strip_all_tags( $message ) )['redacted'], 0, 500 ) ) ) );
         }
     }
 
-    private static function sanitize_context( array $context ): array {
-        $blocked = array( 'prompt', 'content', 'answer', 'api_key', 'authorization', 'secret', 'token' );
-        $safe = array();
-        foreach ( $context as $key => $value ) {
-            $key = sanitize_key( (string) $key );
-            if ( in_array( $key, $blocked, true ) ) {
-                $safe[ $key ] = '[redacted]';
-                continue;
+    public static function sanitize_payload( mixed $value, int $depth = 0 ): mixed {
+        if ( $depth > 5 ) return '[truncated]';
+        if ( is_array( $value ) ) {
+            $safe = array();
+            foreach ( array_slice( $value, 0, 100, true ) as $key => $child ) {
+                $clean_key = is_int( $key ) ? $key : sanitize_key( (string) $key );
+                if ( ! is_int( $clean_key ) && preg_match( '/(?:prompt|content|answer|api[_-]?key|authorization|secret|token|password|cookie|private|patient)/i', (string) $clean_key ) ) {
+                    $safe[ $clean_key ] = '[redacted]';
+                } else {
+                    $safe[ $clean_key ] = self::sanitize_payload( $child, $depth + 1 );
+                }
             }
-            if ( is_scalar( $value ) || null === $value ) {
-                $safe[ $key ] = is_string( $value ) ? substr( sanitize_text_field( $value ), 0, 300 ) : $value;
-            }
+            return $safe;
         }
-        return $safe;
+        if ( is_string( $value ) ) {
+            $redacted = SCHA_Privacy::inspect_and_redact( wp_strip_all_tags( $value ) )['redacted'];
+            return substr( sanitize_text_field( $redacted ), 0, 500 );
+        }
+        return is_scalar( $value ) || null === $value ? $value : '[unsupported]';
+    }
+
+    private static function sanitize_context( array $context ): array {
+        $safe = self::sanitize_payload( $context );
+        return is_array( $safe ) ? $safe : array();
     }
 }

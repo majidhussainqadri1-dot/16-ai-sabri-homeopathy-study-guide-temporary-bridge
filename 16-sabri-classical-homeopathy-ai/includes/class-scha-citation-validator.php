@@ -36,6 +36,9 @@ final class SCHA_Citation_Validator {
                 'location'  => $source['location'],
                 'url'       => $source['url'],
                 'owner_file'=> $source['owner_file'],
+                'license'   => (string) ( $source['license'] ?? '' ),
+                'approved_use' => (string) ( $source['approved_use'] ?? '' ),
+                'rights_reviewed_at' => (string) ( $source['rights_reviewed_at'] ?? '' ),
             );
         }
 

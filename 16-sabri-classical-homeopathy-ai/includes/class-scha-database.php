@@ -3,7 +3,7 @@
 defined( 'ABSPATH' ) || exit;
 
 final class SCHA_Database {
-    public const SCHEMA_VERSION = '1.1.0';
+    public const SCHEMA_VERSION = '2.1.0';
 
     public static function table( string $name ): string {
         global $wpdb;
@@ -15,19 +15,22 @@ final class SCHA_Database {
 
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
         $charset = $wpdb->get_charset_collate();
-
         $sql = array();
+
         $sql[] = 'CREATE TABLE ' . self::table( 'sessions' ) . " (
             id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
             public_id char(36) NOT NULL,
             owner_id bigint(20) unsigned NOT NULL DEFAULT 0,
             guest_token_hash char(64) NOT NULL DEFAULT '',
-            plan_slug varchar(100) NOT NULL DEFAULT '',
+            plan_slug varchar(100) NOT NULL DEFAULT 'single-free-tier',
             role_snapshot varchar(191) NOT NULL DEFAULT '',
+            claims_version varchar(100) NOT NULL DEFAULT '',
+            assistant_mode varchar(40) NOT NULL DEFAULT 'study',
             locale varchar(20) NOT NULL DEFAULT 'en_US',
             provider varchar(100) NOT NULL DEFAULT 'local',
             model varchar(191) NOT NULL DEFAULT '',
             status varchar(30) NOT NULL DEFAULT 'active',
+            legal_hold tinyint(1) unsigned NOT NULL DEFAULT 0,
             retention_until datetime NULL,
             created_at datetime NOT NULL,
             updated_at datetime NOT NULL,
@@ -35,7 +38,8 @@ final class SCHA_Database {
             PRIMARY KEY  (id),
             UNIQUE KEY public_id (public_id),
             KEY owner_status (owner_id,status),
-            KEY retention_until (retention_until)
+            KEY retention_until (retention_until),
+            KEY legal_hold (legal_hold)
         ) $charset;";
 
         $sql[] = 'CREATE TABLE ' . self::table( 'messages' ) . " (
@@ -45,6 +49,7 @@ final class SCHA_Database {
             role varchar(20) NOT NULL,
             content longtext NOT NULL,
             redacted_content longtext NULL,
+            encryption_version varchar(20) NOT NULL DEFAULT 'scha2',
             citations longtext NULL,
             safety_category varchar(60) NOT NULL DEFAULT '',
             provider_response_id varchar(191) NOT NULL DEFAULT '',
@@ -65,6 +70,9 @@ final class SCHA_Database {
             title text NOT NULL,
             source_url text NULL,
             license_name varchar(191) NOT NULL DEFAULT '',
+            approved_use varchar(191) NOT NULL DEFAULT '',
+            rights_evidence_id varchar(191) NOT NULL DEFAULT '',
+            rights_reviewed_at datetime NULL,
             language varchar(20) NOT NULL DEFAULT 'en',
             access_class varchar(40) NOT NULL DEFAULT 'public',
             status varchar(30) NOT NULL DEFAULT 'draft',
@@ -199,6 +207,38 @@ final class SCHA_Database {
             KEY status_available (status,available_at)
         ) $charset;";
 
+        $sql[] = 'CREATE TABLE ' . self::table( 'teacher_posts' ) . " (
+            id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+            public_id char(36) NOT NULL,
+            schedule_key varchar(191) NOT NULL,
+            slot_date date NOT NULL,
+            slot_time time NOT NULL,
+            category varchar(60) NOT NULL DEFAULT 'foundations',
+            title text NOT NULL,
+            content longtext NOT NULL,
+            citations longtext NULL,
+            provider varchar(100) NOT NULL DEFAULT '',
+            model varchar(191) NOT NULL DEFAULT '',
+            risk varchar(20) NOT NULL DEFAULT 'standard',
+            status varchar(30) NOT NULL DEFAULT 'queued',
+            review_required tinyint(1) unsigned NOT NULL DEFAULT 1,
+            reviewed_by bigint(20) unsigned NOT NULL DEFAULT 0,
+            reviewed_at datetime NULL,
+            published_object_id varchar(191) NOT NULL DEFAULT '',
+            published_url text NULL,
+            attempts int(10) unsigned NOT NULL DEFAULT 0,
+            available_at datetime NOT NULL,
+            error_code varchar(100) NOT NULL DEFAULT '',
+            created_at datetime NOT NULL,
+            updated_at datetime NOT NULL,
+            version bigint(20) unsigned NOT NULL DEFAULT 1,
+            PRIMARY KEY  (id),
+            UNIQUE KEY public_id (public_id),
+            UNIQUE KEY schedule_key (schedule_key),
+            KEY status_available (status,available_at),
+            KEY slot_date (slot_date)
+        ) $charset;";
+
         foreach ( $sql as $statement ) {
             dbDelta( $statement );
         }
@@ -208,10 +248,9 @@ final class SCHA_Database {
 
     public static function tables_exist(): bool {
         global $wpdb;
-        foreach ( array( 'sessions', 'messages', 'corpus_items', 'chunks', 'usage', 'feedback', 'policy_versions', 'evaluation_runs', 'audit_log', 'outbox' ) as $name ) {
+        foreach ( array( 'sessions', 'messages', 'corpus_items', 'chunks', 'usage', 'feedback', 'policy_versions', 'evaluation_runs', 'audit_log', 'outbox', 'teacher_posts' ) as $name ) {
             $table = self::table( $name );
-            $found = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) );
-            if ( $found !== $table ) {
+            if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) !== $table ) {
                 return false;
             }
         }

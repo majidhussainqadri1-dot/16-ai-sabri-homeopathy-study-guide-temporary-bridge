@@ -32,6 +32,7 @@ final class SCHA_Provider_Registry {
             'local'     => new SCHA_Provider_Local(),
             'bridge'    => new SCHA_Provider_Bridge(),
             'http_json' => new SCHA_Provider_Http_Json(),
+            'claude'    => new SCHA_Provider_Claude(),
         );
         return apply_filters( 'scha_ai_providers', $providers );
     }

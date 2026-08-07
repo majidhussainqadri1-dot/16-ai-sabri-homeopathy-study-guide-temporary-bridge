@@ -12,16 +12,26 @@ final class SCHA_Corpus {
             }
         }
 
-        $owner_file  = sanitize_text_field( $item['owner_file'] );
+        $owner_file  = sanitize_key( $item['owner_file'] );
+        if ( ! self::owner_allowed( $owner_file, $item ) ) {
+            return new WP_Error( 'scha_corpus_owner_not_allowed', __( 'This canonical owner is not approved for the File 16 corpus.', SCHA_TEXT_DOMAIN ) );
+        }
         $owner_id    = sanitize_text_field( $item['owner_item_id'] );
         $version     = sanitize_text_field( $item['version'] );
         $title       = sanitize_text_field( $item['title'] );
         $content     = wp_kses_post( (string) $item['content'] );
         $plain       = trim( wp_strip_all_tags( $content ) );
+        $privacy     = SCHA_Privacy::inspect_and_redact( $plain );
+        if ( ! empty( $privacy['had_sensitive_data'] ) && true !== apply_filters( 'scha_corpus_sensitive_content_authorized_v1', false, $item, $privacy['findings'] ) ) {
+            return new WP_Error( 'scha_corpus_sensitive_content', __( 'Sensitive personal data is not eligible for the AI corpus without an explicit lawful authorization contract.', SCHA_TEXT_DOMAIN ) );
+        }
         $checksum    = hash( 'sha256', $plain );
         $access      = in_array( $item['access_class'] ?? 'public', array( 'public', 'subscriber', 'doctor', 'founder', 'internal' ), true ) ? $item['access_class'] : 'public';
         $source_url  = esc_url_raw( $item['source_url'] ?? '' );
         $license     = sanitize_text_field( $item['license'] ?? '' );
+        $approved_use = sanitize_text_field( $item['approved_use'] ?? '' );
+        $rights_evidence_id = sanitize_text_field( $item['rights_evidence_id'] ?? '' );
+        $rights_reviewed_at = self::normalize_datetime( $item['rights_reviewed_at'] ?? '' );
         $language    = sanitize_text_field( $item['language'] ?? 'en' );
         $table       = SCHA_Database::table( 'corpus_items' );
         $existing    = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table WHERE owner_file=%s AND owner_item_id=%s AND item_version=%s", $owner_file, $owner_id, $version ), ARRAY_A );
@@ -31,6 +41,9 @@ final class SCHA_Corpus {
             'title'          => $title,
             'source_url'     => $source_url,
             'license_name'   => $license,
+            'approved_use'  => $approved_use,
+            'rights_evidence_id' => $rights_evidence_id,
+            'rights_reviewed_at' => $rights_reviewed_at,
             'language'       => $language,
             'access_class'   => $access,
             'checksum'       => $checksum,
@@ -40,9 +53,23 @@ final class SCHA_Corpus {
 
         if ( $existing ) {
             if ( hash_equals( (string) $existing['checksum'], $checksum ) ) {
-                return absint( $existing['id'] );
+                $item_id = absint( $existing['id'] );
+                $rights_changed = (string) $existing['license_name'] !== $license
+                    || (string) ( $existing['approved_use'] ?? '' ) !== $approved_use
+                    || (string) ( $existing['rights_evidence_id'] ?? '' ) !== $rights_evidence_id
+                    || (string) ( $existing['rights_reviewed_at'] ?? '' ) !== (string) $rights_reviewed_at;
+                if ( $rights_changed ) {
+                    $data['status'] = 'reviewed';
+                    $data['chunk_status'] = 'pending';
+                }
+                $wpdb->update( $table, $data, array( 'id' => $item_id ) );
+                if ( $approve ) {
+                    $indexed = self::approve_and_index( $item_id );
+                    if ( is_wp_error( $indexed ) ) return $indexed;
+                }
+                return $item_id;
             }
-            $data['status']       = $approve ? 'approved' : 'reviewed';
+            $data['status']       = 'reviewed';
             $data['chunk_status'] = 'pending';
             $wpdb->update( $table, $data, array( 'id' => $existing['id'] ) );
             $item_id = absint( $existing['id'] );
@@ -52,10 +79,10 @@ final class SCHA_Corpus {
                 'owner_file'    => $owner_file,
                 'owner_item_id' => $owner_id,
                 'item_version'  => $version,
-                'status'        => $approve ? 'approved' : 'draft',
+                'status'        => $approve ? 'reviewed' : 'draft',
                 'chunk_status'  => 'pending',
-                'approved_by'   => $approve ? get_current_user_id() : 0,
-                'approved_at'   => $approve ? $now : null,
+                'approved_by'   => 0,
+                'approved_at'   => null,
                 'created_at'    => $now,
             );
             $wpdb->insert( $table, $data );
@@ -67,7 +94,8 @@ final class SCHA_Corpus {
         }
 
         if ( $approve ) {
-            self::approve_and_index( $item_id );
+            $indexed = self::approve_and_index( $item_id );
+            if ( is_wp_error( $indexed ) ) return $indexed;
         }
         SCHA_Observability::audit( 'corpus_registered', 'corpus_item', (string) $item_id, array( 'owner_file' => $owner_file, 'version' => $version, 'access' => $access ), 'approved-corpus-management' );
         return $item_id;
@@ -79,10 +107,17 @@ final class SCHA_Corpus {
         $chunks = SCHA_Database::table( 'chunks' );
         $item = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $items WHERE id=%d", $item_id ), ARRAY_A );
         if ( ! $item ) {
-            return new WP_Error( 'scha_source_not_found', 'Corpus item not found.' );
+            return new WP_Error( 'scha_source_not_found', __( 'Corpus item not found.', SCHA_TEXT_DOMAIN ) );
         }
-        if ( '' === trim( (string) $item['license_name'] ) ) {
-            return new WP_Error( 'scha_license_required', 'A source/license statement is required before approval.' );
+        if ( ! self::owner_allowed( sanitize_key( (string) $item['owner_file'] ), $item ) ) {
+            return new WP_Error( 'scha_corpus_owner_not_allowed', __( 'This canonical owner is not approved for the File 16 corpus.', SCHA_TEXT_DOMAIN ) );
+        }
+        $privacy = SCHA_Privacy::inspect_and_redact( (string) $item['source_content'] );
+        if ( ! empty( $privacy['had_sensitive_data'] ) && true !== apply_filters( 'scha_corpus_sensitive_content_authorized_v1', false, $item, $privacy['findings'] ) ) {
+            return new WP_Error( 'scha_corpus_sensitive_content', __( 'Sensitive personal data is not eligible for the AI corpus without an explicit lawful authorization contract.', SCHA_TEXT_DOMAIN ) );
+        }
+        if ( '' === trim( (string) $item['license_name'] ) || '' === trim( (string) ( $item['approved_use'] ?? '' ) ) || '' === trim( (string) ( $item['rights_evidence_id'] ?? '' ) ) || empty( $item['rights_reviewed_at'] ) ) {
+            return new WP_Error( 'scha_rights_review_required', __( 'License, approved AI use, rights evidence and a rights-review date are required before approval.', SCHA_TEXT_DOMAIN ) );
         }
         if ( '' === trim( (string) $item['source_content'] ) ) {
             return new WP_Error( 'scha_source_empty', 'The source has no indexable content.' );
@@ -170,7 +205,7 @@ final class SCHA_Corpus {
         global $wpdb;
         $table = SCHA_Database::table( 'corpus_items' );
         $limit = min( 500, max( 1, $limit ) );
-        return $wpdb->get_results( "SELECT public_id,title,source_url,license_name,language,item_version,owner_file,updated_at FROM $table WHERE status='approved' AND access_class='public' ORDER BY title ASC LIMIT $limit", ARRAY_A ) ?: array();
+        return $wpdb->get_results( "SELECT public_id,title,source_url,license_name,approved_use,rights_reviewed_at,language,item_version,owner_file,updated_at FROM $table WHERE status='approved' AND access_class='public' ORDER BY title ASC LIMIT $limit", ARRAY_A ) ?: array();
     }
 
     public static function accessible_catalog( array $access_classes, int $limit = 100 ): array {
@@ -181,8 +216,28 @@ final class SCHA_Corpus {
             $allowed = array( 'public' );
         }
         $placeholders = implode( ',', array_fill( 0, count( $allowed ), '%s' ) );
-        $sql = $wpdb->prepare( "SELECT public_id,title,source_url,license_name,language,item_version,owner_file,access_class,updated_at FROM $table WHERE status='approved' AND access_class IN ($placeholders) ORDER BY title ASC LIMIT %d", array_merge( $allowed, array( min( 500, max( 1, $limit ) ) ) ) );
+        $sql = $wpdb->prepare( "SELECT public_id,title,source_url,license_name,approved_use,rights_reviewed_at,language,item_version,owner_file,access_class,updated_at FROM $table WHERE status='approved' AND access_class IN ($placeholders) ORDER BY title ASC LIMIT %d", array_merge( $allowed, array( min( 500, max( 1, $limit ) ) ) ) );
         return $wpdb->get_results( $sql, ARRAY_A ) ?: array();
+    }
+
+    private static function owner_allowed( string $owner_file, array $item ): bool {
+        $allowed = (array) apply_filters( 'scha_allowed_corpus_owner_files_v1', array(
+            '05', 'file-05', 'learn-sabri-classical-homeopathy',
+            '06', 'file-06', 'homeopathy-encyclopedia',
+            '12', 'file-12', 'pdf-library',
+            '15', 'file-15', 'radar-trends',
+            'research', 'research-center',
+        ) );
+        $allowed = array_values( array_unique( array_filter( array_map( 'sanitize_key', $allowed ) ) ) );
+        if ( in_array( $owner_file, $allowed, true ) ) return true;
+        return true === apply_filters( 'scha_corpus_source_authorized_v1', false, $owner_file, $item );
+    }
+
+    private static function normalize_datetime( mixed $value ): ?string {
+        $value = trim( (string) $value );
+        if ( '' === $value ) return null;
+        $timestamp = strtotime( $value );
+        return false === $timestamp ? null : gmdate( 'Y-m-d H:i:s', $timestamp );
     }
 
     private static function chunk_text( string $text ): array {

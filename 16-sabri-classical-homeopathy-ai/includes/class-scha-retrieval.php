@@ -25,9 +25,9 @@ final class SCHA_Retrieval {
             $args[] = '%' . $wpdb->esc_like( $token ) . '%';
         }
         $args[] = 200;
-        $sql = "SELECT c.id,c.chunk_index,c.content,c.access_class,i.public_id,i.title,i.source_url,i.item_version,i.owner_file,i.license_name,i.language
+        $sql = "SELECT c.id,c.chunk_index,c.content,c.access_class,i.public_id,i.title,i.source_url,i.item_version,i.owner_file,i.license_name,i.approved_use,i.rights_evidence_id,i.rights_reviewed_at,i.language
                 FROM $chunks c INNER JOIN $items i ON i.id=c.item_id
-                WHERE i.status='approved' AND c.access_class IN ($access_placeholders) AND (" . implode( ' OR ', $like_clauses ) . ")
+                WHERE i.status='approved' AND i.chunk_status='indexed' AND c.access_class IN ($access_placeholders) AND (" . implode( ' OR ', $like_clauses ) . ")
                 ORDER BY i.updated_at DESC LIMIT %d";
         $rows = $wpdb->get_results( $wpdb->prepare( $sql, $args ), ARRAY_A ) ?: array();
 
@@ -67,6 +67,9 @@ final class SCHA_Retrieval {
                 'version'      => $row['item_version'],
                 'owner_file'   => $row['owner_file'],
                 'license'      => $row['license_name'],
+                'approved_use' => $row['approved_use'],
+                'rights_evidence_id' => $row['rights_evidence_id'],
+                'rights_reviewed_at' => $row['rights_reviewed_at'],
                 'language'     => $row['language'],
                 'url'          => $row['source_url'] ?: home_url( '/ai/sources/#source-' . $row['public_id'] ),
                 'content'      => $row['content'],

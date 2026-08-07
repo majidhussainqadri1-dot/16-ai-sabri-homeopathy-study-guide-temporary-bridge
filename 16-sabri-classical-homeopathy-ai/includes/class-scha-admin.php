@@ -5,6 +5,7 @@ defined( 'ABSPATH' ) || exit;
 final class SCHA_Admin {
     public static function register_menu(): void {
         add_menu_page( __( 'Sabri Classical Homeopathy AI', SCHA_TEXT_DOMAIN ), __( 'Sabri AI', SCHA_TEXT_DOMAIN ), SCHA_Capabilities::MANAGE_AI, 'scha-ai', array( __CLASS__, 'render_settings_page' ), 'dashicons-superhero-alt', 58 );
+        add_submenu_page( 'scha-ai', __( 'AI Teacher', SCHA_TEXT_DOMAIN ), __( 'AI Teacher', SCHA_TEXT_DOMAIN ), SCHA_Capabilities::MANAGE_AI, 'scha-ai-teacher', array( __CLASS__, 'render_teacher_page' ) );
         add_submenu_page( 'scha-ai', __( 'Approved Corpus', SCHA_TEXT_DOMAIN ), __( 'Corpus', SCHA_TEXT_DOMAIN ), SCHA_Capabilities::MANAGE_CORPUS, 'scha-ai-corpus', array( __CLASS__, 'render_corpus_page' ) );
         add_submenu_page( 'scha-ai', __( 'AI Evaluations', SCHA_TEXT_DOMAIN ), __( 'Evaluations', SCHA_TEXT_DOMAIN ), SCHA_Capabilities::REVIEW_SAFETY, 'scha-ai-evaluations', array( __CLASS__, 'render_evaluations_page' ) );
         add_submenu_page( 'scha-ai', __( 'System Check', SCHA_TEXT_DOMAIN ), __( 'System Check', SCHA_TEXT_DOMAIN ), SCHA_Capabilities::VIEW_METRICS, 'scha-ai-health', array( __CLASS__, 'render_health_page' ) );
@@ -26,31 +27,103 @@ final class SCHA_Admin {
         $s = SCHA_Settings::all();
         echo '<div class="wrap scha-admin"><h1>' . esc_html__( 'Sabri Classical Homeopathy AI', SCHA_TEXT_DOMAIN ) . '</h1>';
         self::notice();
-        echo '<p>' . esc_html__( 'Educational, source-linked AI only; it is neither a clinical authority nor part of the basic education membership automatically.', SCHA_TEXT_DOMAIN ) . '</p><form method="post" action="options.php">';
+        echo '<p><strong>' . esc_html__( 'Current business law:', SCHA_TEXT_DOMAIN ) . '</strong> ' . esc_html__( 'One complete free tier. Donations do not change AI access, quota, speed, ranking, source access, or support.', SCHA_TEXT_DOMAIN ) . '</p>';
+        echo '<p>' . esc_html__( 'Educational, source-linked assistance only. This module is not a clinical authority and cannot diagnose, prescribe, select a remedy, potency, dose, or frequency.', SCHA_TEXT_DOMAIN ) . '</p>';
+        echo '<form method="post" action="options.php">';
         settings_fields( 'scha_settings_group' );
         echo '<table class="form-table" role="presentation">';
-        self::check( 'enabled', 'Enable AI routes and API', $s['enabled'] );
-        self::check( 'guest_demo', 'Allow tightly limited public demo', $s['guest_demo'] );
-        echo '<tr><th>Provider</th><td><select name="scha_settings[provider]">';
-        foreach ( array( 'local' => 'Local evidence fallback', 'bridge' => 'Temporary Custom GPT bridge', 'http_json' => 'Allowlisted HTTPS JSON provider' ) as $v => $label ) {
+        self::check( 'enabled', __( 'Enable AI routes and API', SCHA_TEXT_DOMAIN ), (bool) $s['enabled'] );
+        self::check( 'guest_demo', __( 'Allow tightly limited public demo', SCHA_TEXT_DOMAIN ), (bool) $s['guest_demo'] );
+        echo '<tr><th>' . esc_html__( 'Provider', SCHA_TEXT_DOMAIN ) . '</th><td><select name="scha_settings[provider]">';
+        foreach ( array( 'local' => 'Local evidence fallback', 'claude' => 'Claude AI', 'bridge' => 'Temporary Custom GPT bridge', 'http_json' => 'Allowlisted HTTPS JSON provider' ) as $v => $label ) {
             echo '<option value="' . esc_attr( $v ) . '" ' . selected( $s['provider'], $v, false ) . '>' . esc_html( $label ) . '</option>';
         }
         echo '</select></td></tr>';
-        self::text( 'bridge_url', 'Custom GPT URL', $s['bridge_url'] );
-        self::text( 'provider_endpoint', 'Provider HTTPS endpoint', $s['provider_endpoint'] );
-        self::text( 'provider_model', 'Provider model', $s['provider_model'] );
-        self::area( 'allowed_provider_hosts', 'Allowed provider hosts', implode( "\n", (array) $s['allowed_provider_hosts'] ) );
-        self::number( 'retention_days', 'Retention days', $s['retention_days'], 1, 365 );
-        self::number( 'max_prompt_chars', 'Maximum prompt characters', $s['max_prompt_chars'], 500, 20000 );
-        self::number( 'requests_per_minute', 'Requests per minute', $s['requests_per_minute'], 1, 120 );
-        self::number( 'daily_request_quota', 'Daily request quota', $s['daily_request_quota'], 1, 10000 );
-        self::number( 'monthly_cost_budget_micros', 'Monthly provider cost budget (micro-units)', $s['monthly_cost_budget_micros'], 0, 999999999 );
-        self::check( 'privacy_redaction', 'Redact detected sensitive data', $s['privacy_redaction'] );
-        self::check( 'public_sources_page', 'Publish approved public source catalogue', $s['public_sources_page'] );
-        self::text( 'green_primary', 'Primary green', $s['green_primary'] );
+        self::text( 'bridge_url', __( 'Custom GPT URL', SCHA_TEXT_DOMAIN ), (string) $s['bridge_url'] );
+        self::text( 'provider_endpoint', __( 'Provider HTTPS endpoint', SCHA_TEXT_DOMAIN ), (string) $s['provider_endpoint'] );
+        self::text( 'provider_model', __( 'Provider model', SCHA_TEXT_DOMAIN ), (string) $s['provider_model'] );
+        self::area( 'allowed_provider_hosts', __( 'Allowed provider hosts', SCHA_TEXT_DOMAIN ), implode( "\n", (array) $s['allowed_provider_hosts'] ) );
+        self::number( 'retention_days', __( 'Retention days', SCHA_TEXT_DOMAIN ), (int) $s['retention_days'], 1, 365 );
+        self::number( 'max_prompt_chars', __( 'Maximum prompt characters', SCHA_TEXT_DOMAIN ), (int) $s['max_prompt_chars'], 500, 20000 );
+        self::number( 'requests_per_minute', __( 'Requests per minute', SCHA_TEXT_DOMAIN ), (int) $s['requests_per_minute'], 1, 120 );
+        self::number( 'daily_request_quota', __( 'Fair-use daily request quota', SCHA_TEXT_DOMAIN ), (int) $s['daily_request_quota'], 1, 10000 );
+        self::number( 'monthly_cost_budget_micros', __( 'Monthly provider cost safety budget (micro-units)', SCHA_TEXT_DOMAIN ), (int) $s['monthly_cost_budget_micros'], 0, 999999999 );
+        echo '<tr><th>' . esc_html__( 'External-provider privacy redaction', SCHA_TEXT_DOMAIN ) . '</th><td><strong>' . esc_html__( 'Always enabled', SCHA_TEXT_DOMAIN ) . '</strong><p class="description">' . esc_html__( 'Detected identifiers and credentials are redacted before any external-provider transfer; this invariant cannot be disabled.', SCHA_TEXT_DOMAIN ) . '</p></td></tr>';
+        self::check( 'public_sources_page', __( 'Publish approved public source catalogue', SCHA_TEXT_DOMAIN ), (bool) $s['public_sources_page'] );
+        self::check( 'low_bandwidth_default', __( 'Prefer low-bandwidth interface by default', SCHA_TEXT_DOMAIN ), (bool) $s['low_bandwidth_default'] );
+        self::text( 'green_primary', __( 'Primary green', SCHA_TEXT_DOMAIN ), (string) $s['green_primary'] );
+        echo '<tr><th colspan="2"><h2>' . esc_html__( 'Institutional AI Teacher', SCHA_TEXT_DOMAIN ) . '</h2></th></tr>';
+        self::check( 'teacher_enabled', __( 'Enable four governed daily AI Teacher slots', SCHA_TEXT_DOMAIN ), (bool) $s['teacher_enabled'] );
+        echo '<tr><th>' . esc_html__( 'Teacher provider', SCHA_TEXT_DOMAIN ) . '</th><td><select name="scha_settings[teacher_provider]">';
+        foreach ( array( 'claude' => 'Claude AI', 'local' => 'Local evidence fallback', 'http_json' => 'Allowlisted HTTPS JSON provider' ) as $v => $label ) {
+            echo '<option value="' . esc_attr( $v ) . '" ' . selected( $s['teacher_provider'], $v, false ) . '>' . esc_html( $label ) . '</option>';
+        }
+        echo '</select></td></tr>';
+        self::text( 'teacher_model', __( 'Teacher model', SCHA_TEXT_DOMAIN ), (string) $s['teacher_model'] );
+        self::area( 'teacher_slots', __( 'Exactly four daily slots (HH:MM)', SCHA_TEXT_DOMAIN ), implode( "\n", (array) $s['teacher_slots'] ) );
+        self::number( 'teacher_human_review_days', __( 'Mandatory human-review launch period (minimum 30 days)', SCHA_TEXT_DOMAIN ), (int) $s['teacher_human_review_days'], 30, 365 );
+        self::check( 'teacher_auto_publish', __( 'Allow low-risk auto-publication after launch review period and explicit Founder policy hook', SCHA_TEXT_DOMAIN ), (bool) $s['teacher_auto_publish'] );
+        self::area( 'teacher_low_risk_categories', __( 'Low-risk categories', SCHA_TEXT_DOMAIN ), implode( "\n", (array) $s['teacher_low_risk_categories'] ) );
+        self::text( 'teacher_launch_date', __( 'Teacher launch date (YYYY-MM-DD)', SCHA_TEXT_DOMAIN ), (string) $s['teacher_launch_date'] );
+        self::number( 'teacher_daily_budget_micros', __( 'Teacher daily provider budget (micro-units)', SCHA_TEXT_DOMAIN ), (int) $s['teacher_daily_budget_micros'], 0, 999999999 );
         echo '</table>';
         submit_button();
-        echo '</form><h2>Secret configuration</h2><pre>define(\'SCHA_PROVIDER_API_KEY\', \'…\');</pre></div>';
+        echo '</form><h2>' . esc_html__( 'Secret configuration', SCHA_TEXT_DOMAIN ) . '</h2><pre>define(\'SCHA_ANTHROPIC_API_KEY\', \'…\');\ndefine(\'SCHA_PROVIDER_API_KEY\', \'…\');</pre></div>';
+    }
+
+    public static function render_teacher_page(): void {
+        self::guard( SCHA_Capabilities::MANAGE_AI );
+        self::notice();
+        $rows = SCHA_AI_Teacher::recent();
+        echo '<div class="wrap scha-admin"><h1>' . esc_html__( 'AI Homeopathy Teacher', SCHA_TEXT_DOMAIN ) . '</h1>';
+        echo '<p>' . esc_html__( 'Institutional AI account; not a human and not a verified doctor. File 16 prepares source-linked drafts; File 21/22 remain the canonical publishing owners.', SCHA_TEXT_DOMAIN ) . '</p>';
+        echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
+        wp_nonce_field( 'scha_teacher_action' );
+        echo '<input type="hidden" name="action" value="scha_teacher_action"><input type="hidden" name="teacher_action" value="reconcile">';
+        submit_button( __( 'Queue and Process Due Slots', SCHA_TEXT_DOMAIN ), 'secondary', 'submit', false );
+        echo '</form>';
+        echo '<table class="widefat striped"><thead><tr><th>' . esc_html__( 'Slot', SCHA_TEXT_DOMAIN ) . '</th><th>' . esc_html__( 'Category / title', SCHA_TEXT_DOMAIN ) . '</th><th>' . esc_html__( 'Provider', SCHA_TEXT_DOMAIN ) . '</th><th>' . esc_html__( 'Status', SCHA_TEXT_DOMAIN ) . '</th><th>' . esc_html__( 'Actions', SCHA_TEXT_DOMAIN ) . '</th></tr></thead><tbody>';
+        foreach ( $rows as $row ) {
+            $public = SCHA_AI_Teacher::public_post( $row );
+            echo '<tr><td><code>' . esc_html( $row['schedule_key'] ) . '</code></td><td><strong>' . esc_html( $row['category'] ) . '</strong><br>' . esc_html( $row['title'] ?: '—' ) . '</td><td>' . esc_html( $row['provider'] ?: '—' ) . '</td><td>' . esc_html( $row['status'] ) . ( ! empty( $row['review_required'] ) ? '<br><small>human review required</small>' : '' ) . '</td><td>';
+            foreach ( array( 'approve' => __( 'Approve', SCHA_TEXT_DOMAIN ), 'publish' => __( 'Publish through owner', SCHA_TEXT_DOMAIN ), 'reject' => __( 'Reject', SCHA_TEXT_DOMAIN ), 'retry' => __( 'Retry', SCHA_TEXT_DOMAIN ) ) as $action => $label ) {
+                echo '<form class="scha-inline-form" method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
+                wp_nonce_field( 'scha_teacher_action' );
+                echo '<input type="hidden" name="action" value="scha_teacher_action"><input type="hidden" name="teacher_action" value="' . esc_attr( $action ) . '"><input type="hidden" name="public_id" value="' . esc_attr( $public['id'] ) . '"><button class="button button-small">' . esc_html( $label ) . '</button></form>';
+            }
+            echo '</td></tr>';
+        }
+        if ( ! $rows ) {
+            echo '<tr><td colspan="5">' . esc_html__( 'No scheduled AI Teacher records yet.', SCHA_TEXT_DOMAIN ) . '</td></tr>';
+        }
+        echo '</tbody></table></div>';
+    }
+
+    public static function handle_teacher_action(): void {
+        self::guard( SCHA_Capabilities::MANAGE_AI );
+        check_admin_referer( 'scha_teacher_action' );
+        $action = sanitize_key( wp_unslash( $_POST['teacher_action'] ?? '' ) );
+        $id = sanitize_text_field( wp_unslash( $_POST['public_id'] ?? '' ) );
+        $result = match ( $action ) {
+            'reconcile' => ( function (): true { SCHA_AI_Teacher::reconcile(); return true; } )(),
+            'approve' => SCHA_AI_Teacher::approve( $id ),
+            'publish' => SCHA_AI_Teacher::publish( $id ),
+            'reject' => SCHA_AI_Teacher::reject( $id, 'human_rejection' ),
+            'retry' => self::retry_teacher( $id ),
+            default => new WP_Error( 'scha_invalid_action', __( 'Invalid action.', SCHA_TEXT_DOMAIN ) ),
+        };
+        self::redirect( 'scha-ai-teacher', $result );
+    }
+
+    private static function retry_teacher( string $id ): true|WP_Error {
+        global $wpdb;
+        $post = SCHA_AI_Teacher::get( $id );
+        if ( ! $post ) {
+            return new WP_Error( 'scha_teacher_not_found', __( 'AI Teacher draft not found.', SCHA_TEXT_DOMAIN ) );
+        }
+        $wpdb->update( SCHA_Database::table( 'teacher_posts' ), array( 'status' => 'queued', 'attempts' => 0, 'available_at' => current_time( 'mysql', true ), 'error_code' => '', 'updated_at' => current_time( 'mysql', true ) ), array( 'id' => $post['id'] ) );
+        SCHA_AI_Teacher::process_queue( 1 );
+        return true;
     }
 
     public static function render_corpus_page(): void {
@@ -63,8 +136,8 @@ final class SCHA_Admin {
         echo '<form class="scha-card" method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
         wp_nonce_field( 'scha_corpus_action' );
         echo '<input type="hidden" name="action" value="scha_corpus_action"><input type="hidden" name="corpus_action" value="register">';
-        foreach ( array( 'title' => 'Title', 'owner_file' => 'Canonical owner file', 'owner_item_id' => 'Canonical owner item ID', 'version' => 'Version/edition', 'source_url' => 'Canonical source URL', 'license' => 'License/permission', 'language' => 'Language' ) as $name => $label ) {
-            echo '<p><label><strong>' . esc_html( $label ) . '</strong><br><input class="regular-text" name="' . esc_attr( $name ) . '" ' . ( in_array( $name, array( 'title', 'owner_file', 'owner_item_id', 'version', 'license', 'language' ), true ) ? 'required' : '' ) . '></label></p>';
+        foreach ( array( 'title' => 'Title', 'owner_file' => 'Canonical owner file', 'owner_item_id' => 'Canonical owner item ID', 'version' => 'Version/edition', 'source_url' => 'Canonical source URL', 'license' => 'License/permission', 'approved_use' => 'Approved AI use', 'rights_evidence_id' => 'Rights evidence ID', 'rights_reviewed_at' => 'Rights review date', 'language' => 'Language' ) as $name => $label ) {
+            echo '<p><label><strong>' . esc_html( $label ) . '</strong><br><input class="regular-text" name="' . esc_attr( $name ) . '" ' . ( in_array( $name, array( 'title', 'owner_file', 'owner_item_id', 'version', 'license', 'approved_use', 'rights_evidence_id', 'rights_reviewed_at', 'language' ), true ) ? 'required' : '' ) . '></label></p>';
         }
         echo '<p><label><strong>Access class</strong><br><select name="access_class"><option>public</option><option>subscriber</option><option>doctor</option><option>founder</option><option>internal</option></select></label></p><p><label><strong>Source text</strong><br><textarea class="large-text" rows="12" name="content" required></textarea></label></p><p><label><input type="checkbox" name="approve" value="1"> Approve and index now after rights review</label></p>';
         submit_button( __( 'Register Source', SCHA_TEXT_DOMAIN ) );
@@ -103,7 +176,7 @@ final class SCHA_Admin {
         $action = sanitize_key( wp_unslash( $_POST['corpus_action'] ?? '' ) );
         if ( 'register' === $action ) {
             $result = SCHA_Corpus::register_item( array(
-                'title' => wp_unslash( $_POST['title'] ?? '' ), 'owner_file' => wp_unslash( $_POST['owner_file'] ?? '' ), 'owner_item_id' => wp_unslash( $_POST['owner_item_id'] ?? '' ), 'version' => wp_unslash( $_POST['version'] ?? '' ), 'source_url' => wp_unslash( $_POST['source_url'] ?? '' ), 'license' => wp_unslash( $_POST['license'] ?? '' ), 'language' => wp_unslash( $_POST['language'] ?? '' ), 'access_class' => wp_unslash( $_POST['access_class'] ?? '' ), 'content' => wp_unslash( $_POST['content'] ?? '' ), 'approve' => ! empty( $_POST['approve'] ),
+                'title' => wp_unslash( $_POST['title'] ?? '' ), 'owner_file' => wp_unslash( $_POST['owner_file'] ?? '' ), 'owner_item_id' => wp_unslash( $_POST['owner_item_id'] ?? '' ), 'version' => wp_unslash( $_POST['version'] ?? '' ), 'source_url' => wp_unslash( $_POST['source_url'] ?? '' ), 'license' => wp_unslash( $_POST['license'] ?? '' ), 'approved_use' => wp_unslash( $_POST['approved_use'] ?? '' ), 'rights_evidence_id' => wp_unslash( $_POST['rights_evidence_id'] ?? '' ), 'rights_reviewed_at' => wp_unslash( $_POST['rights_reviewed_at'] ?? '' ), 'language' => wp_unslash( $_POST['language'] ?? '' ), 'access_class' => wp_unslash( $_POST['access_class'] ?? '' ), 'content' => wp_unslash( $_POST['content'] ?? '' ), 'approve' => ! empty( $_POST['approve'] ),
             ), ! empty( $_POST['approve'] ) );
         } else {
             $id = absint( $_POST['item_id'] ?? 0 );
@@ -116,18 +189,6 @@ final class SCHA_Admin {
         self::guard( SCHA_Capabilities::REVIEW_SAFETY );
         check_admin_referer( 'scha_run_evaluation' );
         self::redirect( 'scha-ai-evaluations', SCHA_Evaluation::run() );
-    }
-
-    public static function render_user_entitlement_fields( WP_User $user ): void {
-        if ( ! current_user_can( 'edit_users' ) || ! current_user_can( 'edit_user', $user->ID ) ) return;
-        echo '<h2>' . esc_html__( 'Sabri Classical Homeopathy AI entitlement', SCHA_TEXT_DOMAIN ) . '</h2><table class="form-table"><tr><th>Status</th><td><select name="scha_ai_entitlement_status"><option value="inactive">inactive</option><option value="active" ' . selected( get_user_meta( $user->ID, 'scha_ai_entitlement_status', true ), 'active', false ) . '>active</option><option value="suspended" ' . selected( get_user_meta( $user->ID, 'scha_ai_entitlement_status', true ), 'suspended', false ) . '>suspended</option></select></td></tr><tr><th>Plan</th><td><input name="scha_ai_plan" value="' . esc_attr( (string) get_user_meta( $user->ID, 'scha_ai_plan', true ) ) . '"></td></tr></table>';
-    }
-
-    public static function save_user_entitlement_fields( int $user_id ): void {
-        if ( ! current_user_can( 'edit_users' ) || ! current_user_can( 'edit_user', $user_id ) ) return;
-        update_user_meta( $user_id, 'scha_ai_entitlement_status', in_array( $_POST['scha_ai_entitlement_status'] ?? '', array( 'inactive', 'active', 'suspended' ), true ) ? sanitize_key( $_POST['scha_ai_entitlement_status'] ) : 'inactive' );
-        update_user_meta( $user_id, 'scha_ai_plan', sanitize_text_field( wp_unslash( $_POST['scha_ai_plan'] ?? '' ) ) );
-        SCHA_Observability::audit( 'entitlement_updated', 'user', (string) $user_id, array( 'status' => get_user_meta( $user_id, 'scha_ai_entitlement_status', true ) ), 'entitlement-administration' );
     }
 
     private static function guard( string $cap ): void { if ( ! current_user_can( $cap ) ) wp_die( esc_html__( 'You are not authorized for this operation.', SCHA_TEXT_DOMAIN ), '', array( 'response' => 403 ) ); }
