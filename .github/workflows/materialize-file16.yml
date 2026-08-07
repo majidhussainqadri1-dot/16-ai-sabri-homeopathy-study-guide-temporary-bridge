@@ -25,11 +25,13 @@ jobs:
             for part in .materialize/file16-part-{01..13}; do cat "$part"; done
           } | base64 --decode > /tmp/file16-reviewed.tar.gz
           gzip -t /tmp/file16-reviewed.tar.gz
+          cp -a .github/workflows /tmp/file16-workflows
           rm -rf 16-sabri-classical-homeopathy-ai scripts tests dist
-          rm -f README.md IMPLEMENTATION-REPORT.md .github/workflows/ci.yml
+          rm -f README.md IMPLEMENTATION-REPORT.md
           tar -xzf /tmp/file16-reviewed.tar.gz -C .
+          rm -rf .github/workflows
+          cp -a /tmp/file16-workflows .github/workflows
           rm -rf .materialize
-          rm -f .github/workflows/materialize-file16.yml
       - name: Verify four-plan candidate
         shell: bash
         run: |
