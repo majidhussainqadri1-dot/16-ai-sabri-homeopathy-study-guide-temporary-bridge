@@ -4,7 +4,7 @@ Tags: education, artificial intelligence, citations, homeopathy, accessibility
 Requires at least: 7.0
 Tested up to: 7.0.1
 Requires PHP: 8.3
-Stable tag: 2.1.0
+Stable tag: 2.2.0
 License: Proprietary project source; see LICENSE.txt
 
 Governed, source-linked educational AI and institutional AI Teacher for the Sabri Social Homeopathy Platform.
@@ -24,6 +24,9 @@ Current Founder policy is one complete free tier. Donations do not affect AI acc
 5. Test real File 00/20/21/22/19/26 contracts before production.
 
 == Changelog ==
+
+= 2.2.0 =
+Forty-round corrective audit release; see `CHANGELOG.md` and `docs/FORTY-ROUND-AUDIT-2026-08-07.md`.
 
 = 2.1.0 =
 Four-plan corrective release; see `CHANGELOG.md` and `docs/FOUR-PLAN-AUDIT-2026-08-07.md`.

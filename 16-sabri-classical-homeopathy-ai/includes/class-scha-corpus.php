@@ -54,15 +54,21 @@ final class SCHA_Corpus {
         if ( $existing ) {
             if ( hash_equals( (string) $existing['checksum'], $checksum ) ) {
                 $item_id = absint( $existing['id'] );
-                $rights_changed = (string) $existing['license_name'] !== $license
+                $approval_metadata_changed = (string) $existing['license_name'] !== $license
                     || (string) ( $existing['approved_use'] ?? '' ) !== $approved_use
                     || (string) ( $existing['rights_evidence_id'] ?? '' ) !== $rights_evidence_id
-                    || (string) ( $existing['rights_reviewed_at'] ?? '' ) !== (string) $rights_reviewed_at;
-                if ( $rights_changed ) {
+                    || (string) ( $existing['rights_reviewed_at'] ?? '' ) !== (string) $rights_reviewed_at
+                    || (string) $existing['access_class'] !== (string) $access
+                    || (string) $existing['source_url'] !== (string) $source_url
+                    || (string) $existing['language'] !== (string) $language
+                    || (string) $existing['title'] !== (string) $title;
+                if ( $approval_metadata_changed ) {
                     $data['status'] = 'reviewed';
                     $data['chunk_status'] = 'pending';
                 }
-                $wpdb->update( $table, $data, array( 'id' => $item_id ) );
+                if ( false === $wpdb->update( $table, $data, array( 'id' => $item_id ) ) ) {
+                    return new WP_Error( 'scha_corpus_write_failed', __( 'The corpus metadata could not be updated safely.', SCHA_TEXT_DOMAIN ) );
+                }
                 if ( $approve ) {
                     $indexed = self::approve_and_index( $item_id );
                     if ( is_wp_error( $indexed ) ) return $indexed;
@@ -71,7 +77,9 @@ final class SCHA_Corpus {
             }
             $data['status']       = 'reviewed';
             $data['chunk_status'] = 'pending';
-            $wpdb->update( $table, $data, array( 'id' => $existing['id'] ) );
+            if ( false === $wpdb->update( $table, $data, array( 'id' => $existing['id'] ) ) ) {
+                return new WP_Error( 'scha_corpus_write_failed', __( 'The corpus source could not be updated safely.', SCHA_TEXT_DOMAIN ) );
+            }
             $item_id = absint( $existing['id'] );
         } else {
             $data += array(

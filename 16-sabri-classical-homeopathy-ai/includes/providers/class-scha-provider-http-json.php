@@ -48,6 +48,7 @@ final class SCHA_Provider_Http_Json implements SCHA_Provider_Interface {
             array(
                 'timeout'     => 35,
                 'redirection' => 0,
+                'limit_response_size' => 1024 * 1024,
                 'headers'     => array(
                     'Authorization' => 'Bearer ' . $this->api_key(),
                     'Content-Type'  => 'application/json',

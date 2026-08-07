@@ -3,19 +3,11 @@
 
   const cfg = window.SCHA_APP || {};
 
-  const clientFingerprint = () => {
-    const base = [navigator.language, screen.width, screen.height, Intl.DateTimeFormat().resolvedOptions().timeZone].join('|');
-    let hash = 2166136261;
-    for (let i = 0; i < base.length; i += 1) { hash ^= base.charCodeAt(i); hash = Math.imul(hash, 16777619); }
-    return `web-${(hash >>> 0).toString(16)}`;
-  };
-
   const rest = (path, options = {}) => {
     const headers = Object.assign({
       'Content-Type': 'application/json',
       'X-WP-Nonce': cfg.nonce || '',
       'X-SCHA-Guest-Token': cfg.guestToken || '',
-      'X-SCHA-Client': clientFingerprint(),
     }, options.headers || {});
     return fetch(`${cfg.restRoot || ''}${path}`, Object.assign({
       credentials: 'same-origin', cache: 'no-store', referrerPolicy: 'no-referrer', headers,
@@ -112,7 +104,9 @@
   };
 
   const initBandwidth = () => {
-    if (cfg.lowBandwidth || localStorage.getItem('scha-low-bandwidth') === '1') document.documentElement.classList.add('scha-low-bandwidth');
+    let storedPreference = false;
+    try { storedPreference = window.localStorage?.getItem('scha-low-bandwidth') === '1'; } catch (_) { storedPreference = false; }
+    if (cfg.lowBandwidth || storedPreference) document.documentElement.classList.add('scha-low-bandwidth');
   };
 
   document.addEventListener('DOMContentLoaded', () => { initBandwidth(); createSession(); initChat(); initHistory(); });

@@ -200,8 +200,8 @@ final class SCHA_Session_Service {
         if ( false === $updated ) {
             return new WP_Error( 'scha_session_delete_failed', __( 'The session could not be deleted.', SCHA_TEXT_DOMAIN ) );
         }
-        do_action( 'scha_provider_delete_session', $session['public_id'], $session['provider'] );
-        SCHA_Observability::audit( 'session_delete_requested', 'ai_session', $session['public_id'], array( 'legal_hold' => false ), 'user-erasure-request' );
+        $provider_delete = SCHA_Provider_Data_Lifecycle::delete_session( (string) $session['public_id'], (string) $session['provider'], 'user-erasure-request' );
+        SCHA_Observability::audit( 'session_delete_requested', 'ai_session', $session['public_id'], array( 'legal_hold' => false, 'provider_deletion_status' => $provider_delete['status'] ), 'user-erasure-request' );
         SCHA_Outbox::publish( 'AISessionDeletionRequested', 'ai_session', $session['public_id'], array( 'session_id' => $session['public_id'] ), 'session-delete-' . $session['public_id'] );
         return true;
     }

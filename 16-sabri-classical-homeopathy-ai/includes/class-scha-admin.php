@@ -121,7 +121,13 @@ final class SCHA_Admin {
         if ( ! $post ) {
             return new WP_Error( 'scha_teacher_not_found', __( 'AI Teacher draft not found.', SCHA_TEXT_DOMAIN ) );
         }
-        $wpdb->update( SCHA_Database::table( 'teacher_posts' ), array( 'status' => 'queued', 'attempts' => 0, 'available_at' => current_time( 'mysql', true ), 'error_code' => '', 'updated_at' => current_time( 'mysql', true ) ), array( 'id' => $post['id'] ) );
+        if ( 'failed' !== (string) $post['status'] ) {
+            return new WP_Error( 'scha_teacher_retry_invalid_state', __( 'Only a failed AI Teacher generation may be manually re-queued.', SCHA_TEXT_DOMAIN ), array( 'status' => 409 ) );
+        }
+        $updated = $wpdb->update( SCHA_Database::table( 'teacher_posts' ), array( 'status' => 'queued', 'attempts' => 0, 'available_at' => current_time( 'mysql', true ), 'error_code' => '', 'updated_at' => current_time( 'mysql', true ) ), array( 'id' => $post['id'], 'status' => 'failed' ) );
+        if ( 1 !== $updated ) {
+            return new WP_Error( 'scha_teacher_retry_conflict', __( 'The AI Teacher record changed before it could be re-queued.', SCHA_TEXT_DOMAIN ), array( 'status' => 409 ) );
+        }
         SCHA_AI_Teacher::process_queue( 1 );
         return true;
     }

@@ -32,6 +32,7 @@ final class SCHA_Plugin {
         add_action( 'scha_corpus_sync_cron', array( 'SCHA_Corpus', 'sync_registered_sources' ) );
         add_action( 'scha_ai_teacher_cron', array( 'SCHA_AI_Teacher', 'reconcile' ) );
 
+        add_filter( 'rest_post_dispatch', array( 'SCHA_REST_Controller', 'secure_response_headers' ), 10, 3 );
         add_filter( 'wp_privacy_personal_data_exporters', array( 'SCHA_Privacy_Tools', 'register_exporters' ) );
         add_filter( 'wp_privacy_personal_data_erasers', array( 'SCHA_Privacy_Tools', 'register_erasers' ) );
         add_filter( 'cron_schedules', array( 'SCHA_Scheduler', 'cron_schedules' ) );

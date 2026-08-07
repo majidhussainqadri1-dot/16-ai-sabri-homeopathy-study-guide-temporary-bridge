@@ -20,9 +20,9 @@ final class SCHA_Prompt_Policy {
             '/(شخّص حالتي|ما هو مرضي|هل لدي سرطان)/u',
         ),
         'prescription' => array(
-            '/\b(prescribe|which remedy should i take|give me a medicine|treatment plan)\b/iu',
-            '/(دوا تجویز|کون سی دوا لوں|نسخہ دیں|علاج بتائیں)/u',
-            '/(صف لي دواء|أي علاج آخذ|أعطني وصفة)/u',
+            '/\b(prescribe|which remedy should i take|what remedy should i take|recommend (?:a |the )?(?:remedy|medicine)|suggest (?:a |the )?(?:remedy|medicine)|give me a medicine|what should i take|treatment plan|treat my (?:case|condition|symptoms))\b/iu',
+            '/(دوا تجویز|کون سی (?:ہومیوپیتھک )?دوا لوں|کون سی ریمیڈی لوں|میرے لیے دوا|نسخہ دیں|علاج بتائیں|میرے کیس کا علاج)/u',
+            '/(صف لي دواء|أي علاج آخذ|أي دواء آخذ|اقترح دواء|أعطني وصفة|عالج حالتي)/u',
         ),
         'potency_dosage' => array(
             '/\b(potency|dosage|dose|how many drops|30c|200c|1m|cm potency)\b/iu',

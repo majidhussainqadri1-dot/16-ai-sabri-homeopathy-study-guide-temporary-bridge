@@ -3,20 +3,17 @@
 defined( 'ABSPATH' ) || exit;
 
 final class SCHA_Policy_Repository {
-    public const CURRENT_VERSION = '2.1.0';
+    public const CURRENT_VERSION = '2.2.0';
 
     public static function seed_default_policy(): void {
         global $wpdb;
         $table = SCHA_Database::table( 'policy_versions' );
-        $exists = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table WHERE policy_key=%s AND policy_version=%s", 'answer-safety', self::CURRENT_VERSION ) );
-        if ( $exists ) {
-            update_option( 'scha_active_policy_version', self::CURRENT_VERSION, false );
-            return;
-        }
+        $existing = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table WHERE policy_key=%s AND policy_version=%s LIMIT 1", 'answer-safety', self::CURRENT_VERSION ), ARRAY_A );
 
         $rules = array(
             'clinical_authority' => false,
             'citation_required'  => true,
+            'citation_coverage_required' => true,
             'web_retrieval'      => false,
             'provider_training'  => false,
             'external_redaction' => true,
@@ -33,24 +30,40 @@ final class SCHA_Policy_Repository {
             'teacher_first_review_days_minimum' => 30,
         );
 
-        $wpdb->query( 'START TRANSACTION' );
+        if ( false === $wpdb->query( 'START TRANSACTION' ) ) {
+            SCHA_Observability::safe_error( 'Policy transaction could not start.', SCHA_Observability::trace_id() );
+            return;
+        }
         try {
-            $wpdb->update( $table, array( 'status' => 'superseded' ), array( 'policy_key' => 'answer-safety', 'status' => 'active' ) );
-            $wpdb->insert(
-                $table,
-                array(
-                    'policy_key'     => 'answer-safety',
-                    'policy_version' => self::CURRENT_VERSION,
-                    'rules_json'     => wp_json_encode( $rules ),
-                    'status'         => 'active',
-                    'effective_at'   => current_time( 'mysql', true ),
-                    'approved_by'    => get_current_user_id(),
-                    'created_at'     => current_time( 'mysql', true ),
-                )
-            );
-            if ( ! $wpdb->insert_id ) throw new RuntimeException( 'Policy insert failed.' );
+            if ( false === $wpdb->query( $wpdb->prepare( "UPDATE $table SET status='superseded' WHERE policy_key=%s AND status='active' AND policy_version<>%s", 'answer-safety', self::CURRENT_VERSION ) ) ) {
+                throw new RuntimeException( 'Previous policy versions could not be superseded.' );
+            }
+
+            if ( $existing ) {
+                $updated = $wpdb->update(
+                    $table,
+                    array( 'rules_json' => wp_json_encode( $rules ), 'status' => 'active', 'effective_at' => current_time( 'mysql', true ) ),
+                    array( 'id' => $existing['id'] )
+                );
+                if ( false === $updated ) throw new RuntimeException( 'Current policy version could not be activated.' );
+            } else {
+                $inserted = $wpdb->insert(
+                    $table,
+                    array(
+                        'policy_key'     => 'answer-safety',
+                        'policy_version' => self::CURRENT_VERSION,
+                        'rules_json'     => wp_json_encode( $rules ),
+                        'status'         => 'active',
+                        'effective_at'   => current_time( 'mysql', true ),
+                        'approved_by'    => get_current_user_id(),
+                        'created_at'     => current_time( 'mysql', true ),
+                    )
+                );
+                if ( ! $inserted || ! $wpdb->insert_id ) throw new RuntimeException( 'Policy insert failed.' );
+            }
+
+            if ( false === $wpdb->query( 'COMMIT' ) ) throw new RuntimeException( 'Policy transaction could not be committed.' );
             update_option( 'scha_active_policy_version', self::CURRENT_VERSION, false );
-            $wpdb->query( 'COMMIT' );
         } catch ( Throwable $e ) {
             $wpdb->query( 'ROLLBACK' );
             SCHA_Observability::safe_error( $e, SCHA_Observability::trace_id() );

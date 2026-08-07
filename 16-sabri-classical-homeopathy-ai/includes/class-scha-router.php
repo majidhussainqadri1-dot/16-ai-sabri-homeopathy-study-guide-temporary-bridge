@@ -28,7 +28,7 @@ final class SCHA_Router {
         $route = sanitize_key( (string) get_query_var( 'scha_route' ) );
         if ( ! $route || ! in_array( $route, array( 'home', 'session', 'history', 'sources', 'accessibility', 'governance' ), true ) ) return;
 
-        if ( in_array( $route, array( 'session', 'history', 'governance' ), true ) ) SCHA_Privacy::no_cache_headers();
+        if ( in_array( $route, array( 'session', 'history', 'governance' ), true ) || ( 'sources' === $route && is_user_logged_in() ) ) SCHA_Privacy::no_cache_headers();
         if ( 'session' === $route ) {
             $session = SCHA_Session_Service::owned( sanitize_text_field( (string) get_query_var( 'scha_session_id' ) ) );
             if ( is_wp_error( $session ) ) {
@@ -36,6 +36,8 @@ final class SCHA_Router {
                 $route = 'not-found';
             }
         }
+        if ( 'sources' === $route && ! is_user_logged_in() && ! SCHA_Settings::get( 'public_sources_page', false ) ) { status_header( 404 ); $route = 'not-found'; }
+        if ( 'sources' === $route && is_user_logged_in() && is_wp_error( SCHA_Account_Context::require_approved() ) ) { status_header( 404 ); $route = 'not-found'; }
         if ( 'history' === $route && ! is_user_logged_in() ) { auth_redirect(); exit; }
         if ( 'governance' === $route && ! SCHA_Capabilities::current_user_can_manage() ) { status_header( 404 ); $route = 'not-found'; }
 
@@ -46,7 +48,7 @@ final class SCHA_Router {
 
     public static function robots( array $robots ): array {
         $route = sanitize_key( (string) get_query_var( 'scha_route' ) );
-        if ( in_array( $route, array( 'session', 'history', 'governance', 'not-found' ), true ) ) {
+        if ( in_array( $route, array( 'session', 'history', 'governance', 'not-found' ), true ) || ( 'sources' === $route && is_user_logged_in() ) ) {
             $robots['noindex'] = true; $robots['nofollow'] = true; $robots['noarchive'] = true;
         }
         return $robots;
@@ -58,7 +60,7 @@ final class SCHA_Router {
         header( 'Referrer-Policy: strict-origin-when-cross-origin' );
         header( 'X-Content-Type-Options: nosniff' );
         header( 'Permissions-Policy: microphone=(), camera=(), geolocation=()' );
-        if ( in_array( $route, array( 'session', 'history', 'governance', 'not-found' ), true ) ) {
+        if ( in_array( $route, array( 'session', 'history', 'governance', 'not-found' ), true ) || ( 'sources' === $route && is_user_logged_in() ) ) {
             header( 'X-Robots-Tag: noindex, nofollow, noarchive', true );
             header( 'Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0', true );
         }

@@ -53,7 +53,7 @@ final class SCHA_Public {
         echo '<nav class="scha-nav" aria-label="' . esc_attr__( 'AI navigation', SCHA_TEXT_DOMAIN ) . '">';
         echo '<a href="' . esc_url( home_url( '/ai/' ) ) . '">' . esc_html__( 'AI Home', SCHA_TEXT_DOMAIN ) . '</a>';
         echo '<a href="' . esc_url( home_url( '/ai/history/' ) ) . '">' . esc_html__( 'History', SCHA_TEXT_DOMAIN ) . '</a>';
-        echo '<a href="' . esc_url( home_url( '/ai/sources/' ) ) . '">' . esc_html__( 'Approved Sources', SCHA_TEXT_DOMAIN ) . '</a>';
+        if ( is_user_logged_in() || SCHA_Settings::get( 'public_sources_page', false ) ) echo '<a href="' . esc_url( home_url( '/ai/sources/' ) ) . '">' . esc_html__( 'Approved Sources', SCHA_TEXT_DOMAIN ) . '</a>';
         echo '<a href="' . esc_url( home_url( '/ai/accessibility/' ) ) . '">' . esc_html__( 'Accessibility', SCHA_TEXT_DOMAIN ) . '</a>';
         if ( SCHA_Capabilities::current_user_can_manage() ) echo '<a href="' . esc_url( home_url( '/ai/governance/' ) ) . '">' . esc_html__( 'Governance', SCHA_TEXT_DOMAIN ) . '</a>';
         echo '</nav>';
