@@ -1,22 +1,17 @@
 # Release Checklist
 
-## Automated gate
-
-- PHP syntax for every plugin file.
-- JavaScript syntax for public/admin assets.
-- Unit/adversarial safety, privacy, URL and citation assertions.
-- Structural and security contract checks.
-- Deterministic ZIP, checksum and archive integrity.
-
-## Staging gate
-
-- Verified backup and restore.
-- Fresh install, upgrade, activation/deactivation and non-destructive uninstall.
-- Database migration lock and schema evidence.
-- Founder, administrator, subscriber, verified doctor, guest and unauthorized journeys.
-- Corpus approval/retraction, retrieval, citations, refusals, provider degradation and cost budget.
-- Session ownership, guest binding, export, erasure, retention and noindex/no-cache behavior.
-- Keyboard, screen reader, RTL, mobile/tablet/desktop and reduced-motion checks.
-- Performance, security, privacy, monitoring, rollback and incident readiness.
-
-Production remains blocked until every staging item is evidenced and Founder approval is recorded.
+- [x] Four governing plans traced and precedence recorded.
+- [x] One free tier/no donor advantage enforced; superseded paid runtime removed.
+- [x] Current File 00 claims fail closed at protected actions.
+- [x] Encrypted session messages, legal hold, export/erase and retention.
+- [x] Input/output safety, citations, insufficient-evidence stop and provider abstraction.
+- [x] Claude provider, four-slot AI Teacher, 30-day human review and canonical owner handoff.
+- [x] File 20/21/22/19/26 boundaries and events.
+- [x] RTL/accessibility/low-bandwidth/private route controls.
+- [x] Schema/migration/rollback/docs/tests/package/SBOM.
+- [ ] Exact-head GitHub CI green.
+- [ ] Hostinger staging fresh install and 1.x upgrade.
+- [ ] Real roles/claims/corpus/providers/companion contracts.
+- [ ] Browser, screen reader, zoom, RTL, low-bandwidth and load evidence.
+- [ ] Backup/restore and rollback drill.
+- [ ] Founder acceptance and production authorization.

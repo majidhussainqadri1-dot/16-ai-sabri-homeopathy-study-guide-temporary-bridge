@@ -2,56 +2,61 @@
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Current Founder directive: one complete free tier. Donation/payment never grants AI access,
+ * quota, rank, badge, speed or corpus privilege. Fair-use quotas remain transparent safeguards.
+ */
 final class SCHA_Entitlements {
     public static function current(): array {
-        $user_id = get_current_user_id();
-        if ( 0 === $user_id ) {
+        $context = SCHA_Account_Context::current();
+        if ( ! $context['authenticated'] ) {
             return array(
-                'active'       => (bool) SCHA_Settings::get( 'guest_demo', false ),
-                'plan'         => 'guest-demo',
+                'active'       => $context['approved'],
+                'plan'         => 'free-guest-demo',
                 'role'         => 'guest',
                 'access_class' => array( 'public' ),
                 'quota'        => min( 5, absint( SCHA_Settings::get( 'daily_request_quota', 50 ) ) ),
+                'user_id'      => 0,
+                'locale'       => get_locale(),
+                'claims_version' => $context['claims_version'],
             );
         }
 
-        $user = get_userdata( $user_id );
-        $claims = apply_filters( 'sabri_membership_claims', array(), $user_id );
-        $meta_status = (string) get_user_meta( $user_id, 'scha_ai_entitlement_status', true );
-        $meta_plan   = (string) get_user_meta( $user_id, 'scha_ai_plan', true );
-        $active      = current_user_can( SCHA_Capabilities::USE_AI ) || 'active' === $meta_status || ! empty( $claims['ai_entitlement_active'] );
-        $active      = (bool) apply_filters( 'scha_user_has_entitlement', $active, $user_id, $claims );
-
-        $verified_doctor = ! empty( $claims['verified_doctor'] ) || (bool) get_user_meta( $user_id, 'sabri_verified_doctor', true );
-        $is_founder      = current_user_can( SCHA_Capabilities::MANAGE_AI ) || ! empty( $claims['institutional_founder'] );
-        $access          = array( 'public', 'subscriber' );
-        $role            = 'subscriber';
-        if ( $verified_doctor ) {
+        $user = get_userdata( $context['user_id'] );
+        $access = array( 'public', 'subscriber' );
+        $role = 'member';
+        if ( $context['verified_doctor'] ) {
             $access[] = 'doctor';
             $role = 'verified_doctor';
         }
-        if ( $is_founder ) {
+        if ( $context['founder'] ) {
             $access[] = 'founder';
             $access[] = 'internal';
             $role = 'founder';
-            $active = true;
         }
 
+        $quota = absint( SCHA_Settings::get( 'daily_request_quota', 50 ) );
+        $quota = absint( apply_filters( 'scha_fair_use_daily_quota', $quota, $context['user_id'], $context ) );
+
         return array(
-            'active'       => $active,
-            'plan'         => $meta_plan ?: ( $claims['ai_plan'] ?? 'ai-addon' ),
-            'role'         => $role,
-            'access_class' => array_values( array_unique( $access ) ),
-            'quota'        => absint( apply_filters( 'scha_daily_quota', SCHA_Settings::get( 'daily_request_quota', 50 ), $user_id, $claims ) ),
-            'user_id'      => $user_id,
-            'locale'       => $user ? $user->locale : get_locale(),
+            'active'         => (bool) $context['approved'],
+            'plan'           => 'single-free-tier',
+            'role'           => $role,
+            'access_class'   => array_values( array_unique( $access ) ),
+            'quota'          => max( 1, $quota ),
+            'user_id'        => $context['user_id'],
+            'locale'         => $user && $user->locale ? $user->locale : get_locale(),
+            'claims_version' => $context['claims_version'],
+            'donor_neutral'  => true,
         );
     }
 
     public static function require_active(): true|WP_Error {
+        $approved = SCHA_Account_Context::require_approved();
+        if ( is_wp_error( $approved ) ) return $approved;
         $entitlement = self::current();
         if ( ! $entitlement['active'] ) {
-            return new WP_Error( 'scha_entitlement_required', __( 'A separate Sabri Classical Homeopathy AI entitlement is required. The basic education membership does not automatically include AI access.', SCHA_TEXT_DOMAIN ), array( 'status' => 403 ) );
+            return new WP_Error( 'scha_free_tier_unavailable', __( 'AI access is unavailable for the current account state.', SCHA_TEXT_DOMAIN ), array( 'status' => 403 ) );
         }
         return true;
     }

@@ -1,1 +1,7 @@
-.scha-admin{max-width:1180px}.scha-admin h1{color:#0b4f28}.scha-admin .scha-card{background:#fff;border:1px solid #d7e1da;border-radius:12px;padding:1rem;max-width:900px}.scha-admin .scha-inline-form{display:inline-block;margin-inline-end:.35rem}.scha-admin pre{background:#102317;color:#e8fff0;padding:1rem;border-radius:8px;overflow:auto}
+.scha-admin { max-width: 1180px; }
+.scha-admin h1 { color: #0b4f28; }
+.scha-admin .scha-card { background: #fff; border: 1px solid #d7e1da; border-radius: 12px; padding: 1rem; max-width: 900px; }
+.scha-admin .scha-inline-form { display: inline-block; margin-inline-end: .35rem; }
+.scha-admin .scha-table-wrap { overflow-x: auto; }
+.scha-admin pre { background: #102317; color: #e8fff0; padding: 1rem; border-radius: 8px; overflow-x: auto; }
+.scha-admin .form-table th { width: 260px; }

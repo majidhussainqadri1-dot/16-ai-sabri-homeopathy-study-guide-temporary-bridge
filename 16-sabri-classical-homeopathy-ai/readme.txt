@@ -1,29 +1,29 @@
 === Sabri Classical Homeopathy AI ===
-Contributors: majidhussainqadri1-dot
-Tags: homeopathy, education, ai, citations, retrieval
-Requires at least: 6.6
-Tested up to: 7.0
-Requires PHP: 8.1
-Stable tag: 1.0.0
-License: GPL-2.0-or-later
+Contributors: sabrihomeopathy
+Tags: education, artificial intelligence, citations, homeopathy, accessibility
+Requires at least: 7.0
+Tested up to: 7.0.1
+Requires PHP: 8.3
+Stable tag: 2.1.0
+License: Proprietary project source; see LICENSE.txt
 
-Governed, source-linked educational AI for the Sabri Social Homeopathy Platform.
+Governed, source-linked educational AI and institutional AI Teacher for the Sabri Social Homeopathy Platform.
 
 == Description ==
 
-File 16 implements a separate-entitlement AI service with approved-corpus retrieval, citations, provider abstraction, strict medical boundaries, privacy controls, evaluations, audit evidence and a temporary Custom GPT bridge.
+File 16 owns educational AI sessions, approved-corpus retrieval, citations, provider/model abstraction, safety/refusal, usage/cost safeguards, privacy/audit, evaluations, the temporary Custom GPT bridge and AI Teacher generation governance. It has no diagnosis, prescription, remedy-selection, potency, dosage, frequency or emergency authority.
 
-It does not diagnose, prescribe, select potency or dosage, replace emergency care, or ingest private clinical records, messages, identity evidence, or private studies by default.
+Current Founder policy is one complete free tier. Donations do not affect AI access, quota, speed, ranking, sources or support.
 
 == Installation ==
 
-1. Install only on the approved staging site first.
-2. Activate the plugin and verify database migrations and rewrite routes.
-3. Configure entitlements, corpus rights, retention and provider allowlists.
-4. Run the built-in evaluation suite and complete the release checklist.
-5. Deploy live only after backup, rollback proof and Founder approval.
+1. Back up and prove restore on staging.
+2. Upload the single `16-sabri-classical-homeopathy-ai` folder.
+3. Activate on WordPress 7.0+/PHP 8.3+.
+4. Configure approved sources and server-only provider secrets.
+5. Test real File 00/20/21/22/19/26 contracts before production.
 
 == Changelog ==
 
-= 1.0.0 =
-* Complete File 16 implementation baseline.
+= 2.1.0 =
+Four-plan corrective release; see `CHANGELOG.md` and `docs/FOUR-PLAN-AUDIT-2026-08-07.md`.

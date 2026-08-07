@@ -1,0 +1,387 @@
+{
+  "schema": "SCHA-source-manifest-v2",
+  "package": "16-sabri-classical-homeopathy-ai",
+  "version": "2.1.0",
+  "files": [
+    {
+      "path": "16-sabri-classical-homeopathy-ai.php",
+      "size": 1113,
+      "sha256": "0adb46e730589e9fb1256fd1456be7d68946864fc8696d3fe23f384c1de50d5c"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "size": 1742,
+      "sha256": "908e5c6215568f96a053fcb8c5a3de525db5823078c4d7d51dba6c8e3f30529d"
+    },
+    {
+      "path": "LICENSE.txt",
+      "size": 283,
+      "sha256": "02c8387be5f4929ab5b8f9129ae3e6d45641648b1a3455855a4ef12ad0085575"
+    },
+    {
+      "path": "assets/css/admin.css",
+      "size": 486,
+      "sha256": "dbe3e68f8429f94f401e82737ad51bffa2a7afc9d2c3b914a63363f05a8de5c0"
+    },
+    {
+      "path": "assets/css/public.css",
+      "size": 8321,
+      "sha256": "92accdbd29d707c757df53981d18666182de42aa970d606226be3c8cc9e86973"
+    },
+    {
+      "path": "assets/js/admin.js",
+      "size": 462,
+      "sha256": "603df5083f90f8cd02d3e068ea48f67e5ad05f7106cbb9b4a73ba563f22f081f"
+    },
+    {
+      "path": "assets/js/public.js",
+      "size": 10630,
+      "sha256": "8f404f96eb964085170c4aa52741673d60421888d12f71693e2f5a99a21ffb74"
+    },
+    {
+      "path": "docs/ACCESSIBILITY.md",
+      "size": 614,
+      "sha256": "6728078c7062da7e66d4ec54a27337b56ae52d4060267b3819b4ed7e0b467b48"
+    },
+    {
+      "path": "docs/API.md",
+      "size": 947,
+      "sha256": "0d22fafe1390993024b22bb245bb7904279849db2a8be53a297539bd745d8bac"
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "size": 1771,
+      "sha256": "fd4d6884495e3aaefcc77a79365d7d6de63b94ed2af1eda0e81222b07792b700"
+    },
+    {
+      "path": "docs/DATA-SCHEMA.md",
+      "size": 990,
+      "sha256": "ab21628b5b9be310efe09aaba3b919d8dd27d5866f83d4aa49248730dfca331f"
+    },
+    {
+      "path": "docs/FOUR-PLAN-AUDIT-2026-08-07.md",
+      "size": 12109,
+      "sha256": "59ac4abe2f3a43b97c7f10fceb28c04cb963fd457572f192804ee0eb0b3569b2"
+    },
+    {
+      "path": "docs/IMPLEMENTATION-STATUS.md",
+      "size": 827,
+      "sha256": "54f6c608094959c426e02291b86ee95b7c8015c6578d38b80d1646d017a4917c"
+    },
+    {
+      "path": "docs/MIGRATION-ROLLBACK.md",
+      "size": 1341,
+      "sha256": "4477d627a78ed04e227f181cda1d815b2f228711443d6a085e9459c4011a0cca"
+    },
+    {
+      "path": "docs/OPERATIONS.md",
+      "size": 813,
+      "sha256": "dab7425427dcca58856f1cbf906754223df12a0d9cfca1284dd0d206d46242ec"
+    },
+    {
+      "path": "docs/PRIVACY.md",
+      "size": 1010,
+      "sha256": "84a76e8f8bc7b879d475783a76f5b7bb52735eab5479b3ea353038ab04d43808"
+    },
+    {
+      "path": "docs/RELEASE-CHECKLIST.md",
+      "size": 973,
+      "sha256": "c0a56d9398f046f5f7e1d364ea9297d0d289f065f64e5634d083fc0fe2c7e8a0"
+    },
+    {
+      "path": "docs/REVIEW-EVIDENCE.md",
+      "size": 896,
+      "sha256": "d108b63150ea8fbb56cb292f8751f2a542df5e16eb4910943e6cedb52e9d9d4a"
+    },
+    {
+      "path": "docs/SBOM.spdx.json",
+      "size": 802,
+      "sha256": "b97fd478766de43e4eb11382deabab1f4608cfcad463578dbbcbd3b37077ef9c"
+    },
+    {
+      "path": "docs/SECURITY.md",
+      "size": 1177,
+      "sha256": "f89f4e8fe64f503ab6ef75b9d827a884a22105c49940623acaebdcadc5c36f74"
+    },
+    {
+      "path": "docs/THREAT-MODEL.md",
+      "size": 651,
+      "sha256": "3dd4bed212db7d2e15cedd47eb5d5b1c61a977497e887485004618dc19069621"
+    },
+    {
+      "path": "docs/TRACEABILITY.md",
+      "size": 4253,
+      "sha256": "b03a3d5824385153316db58563051af7704b7aa5a1d26e5d013a38543032986e"
+    },
+    {
+      "path": "includes/class-scha-account-context.php",
+      "size": 4714,
+      "sha256": "3bb5e5635b90224f66f9636ff716cbd70149cd745dac55a65ecf50dae6ffd82e"
+    },
+    {
+      "path": "includes/class-scha-activator.php",
+      "size": 1509,
+      "sha256": "5123de567e56a0e94f550f91f3dd6a6dbf2432d8b51337ebe55cd5eed5053976"
+    },
+    {
+      "path": "includes/class-scha-admin.php",
+      "size": 20507,
+      "sha256": "f683669a2ee14376c8ff542e155b5ab84aa2081f605ef4d4b9e0bf8aa492a0c2"
+    },
+    {
+      "path": "includes/class-scha-ai-service.php",
+      "size": 13456,
+      "sha256": "353977a79de34b230ddd3d242adeeb714d88ce92de46d8971ff858caf15caf08"
+    },
+    {
+      "path": "includes/class-scha-ai-teacher.php",
+      "size": 24335,
+      "sha256": "295811c2bcae5f364caed53b56fb01bbc8e404cbd62305ba05183c0aace443ee"
+    },
+    {
+      "path": "includes/class-scha-assistant-modes.php",
+      "size": 2129,
+      "sha256": "53f4bfe5407f8f6acc9f85c715186e5020ba76af00b948182fbae267916e3e80"
+    },
+    {
+      "path": "includes/class-scha-autoloader.php",
+      "size": 785,
+      "sha256": "bea99e92d598f8b1871e7189214c0d347ab5836fbc80e6cb69eb2951e9a6ddd4"
+    },
+    {
+      "path": "includes/class-scha-capabilities.php",
+      "size": 1076,
+      "sha256": "84043d7ad197571348558bee890b6ee70f20c0db55e9f8584a3bab5f6dfa19e0"
+    },
+    {
+      "path": "includes/class-scha-citation-validator.php",
+      "size": 2539,
+      "sha256": "75c182ed66f0d450f7a4e497e8317abf21384f9088058044994662d8a260c99e"
+    },
+    {
+      "path": "includes/class-scha-corpus.php",
+      "size": 14353,
+      "sha256": "7e2ade37dc714f4c8185425e3392bf012f2e0f67115bc484c5f2354e63984086"
+    },
+    {
+      "path": "includes/class-scha-crypto.php",
+      "size": 3233,
+      "sha256": "a4aa0a594046fb90c76c57f03c291d8889c7073bc4c4a74f8f2cba1e49235df4"
+    },
+    {
+      "path": "includes/class-scha-database-migrator.php",
+      "size": 688,
+      "sha256": "f64ae453b2a8788a1ca8d18ff2772bd8228274cfba4c3f4b131ca3e03352db9d"
+    },
+    {
+      "path": "includes/class-scha-database.php",
+      "size": 11508,
+      "sha256": "3d2a7d3923075d076f64c6cc11c497196155c5f3c79dc8fa586356081b856f86"
+    },
+    {
+      "path": "includes/class-scha-entitlements.php",
+      "size": 2793,
+      "sha256": "7b22693156813fac6250ec1d473bc0d6f748a446f7332feeed027d3470977a91"
+    },
+    {
+      "path": "includes/class-scha-evaluation.php",
+      "size": 4483,
+      "sha256": "4f0b4efc80580b77b28a463c068ed6b8e6f79012d4784c293d893d6b74b58fc7"
+    },
+    {
+      "path": "includes/class-scha-feedback.php",
+      "size": 2900,
+      "sha256": "f58fb9e25e616556c793f80a739b4b33798c29c6a96770fd247e5d9624867441"
+    },
+    {
+      "path": "includes/class-scha-four-plan-compliance.php",
+      "size": 1045,
+      "sha256": "c496779a1c2aed11cd0604c44bfe5eedd5d9d77276de0fe93f400fbaadb82426"
+    },
+    {
+      "path": "includes/class-scha-governance-gates.php",
+      "size": 1335,
+      "sha256": "ed0972da7b6cdc8d239e2714322ad147189a504fc490c939e2aba70e83d241d1"
+    },
+    {
+      "path": "includes/class-scha-guest-auth.php",
+      "size": 1758,
+      "sha256": "e537a056756f34591a8974f28003c0f2a7f056e10dd71168278aeb531747d0f8"
+    },
+    {
+      "path": "includes/class-scha-health.php",
+      "size": 2708,
+      "sha256": "cb9fd8b36bb3ef568d2ef984e7cedc3919f14cdbd8a5d53cbc3a537d39577b19"
+    },
+    {
+      "path": "includes/class-scha-integration.php",
+      "size": 1900,
+      "sha256": "80652e3b6a0c82d313865d4b2e9d85dbefc56dc3bdf0dd4f3c5c980baa60c9b5"
+    },
+    {
+      "path": "includes/class-scha-observability.php",
+      "size": 3595,
+      "sha256": "c5a10caab5f94783e512cfeda8373202a4254ddd8271c63cc4bb274035ffe6e7"
+    },
+    {
+      "path": "includes/class-scha-outbox.php",
+      "size": 3365,
+      "sha256": "edac291ccea4c18d79817c241519fe3b849e691c1a4ae02986e04140e8bdb3c6"
+    },
+    {
+      "path": "includes/class-scha-output-policy.php",
+      "size": 1264,
+      "sha256": "cdd9b4eb1cc4f423f7a3196aa801de38649c1abeb4d66996864acaff418bdccf"
+    },
+    {
+      "path": "includes/class-scha-plugin.php",
+      "size": 2950,
+      "sha256": "45fa9544106b5214d73740092d83cefaa3760effcecd11dd84e143dc82c1eccb"
+    },
+    {
+      "path": "includes/class-scha-policy-repository.php",
+      "size": 3062,
+      "sha256": "9bda7ed5175455475d2e9794480bc8b4710321ae5b8db6d35c0fbb90ae5e2056"
+    },
+    {
+      "path": "includes/class-scha-privacy-tools.php",
+      "size": 7006,
+      "sha256": "4a4102d150b3ae8556037ed8cce15df5362f4516c957743bdd8097bc6b38e093"
+    },
+    {
+      "path": "includes/class-scha-privacy.php",
+      "size": 1922,
+      "sha256": "ece1fee89d29a40f5c94e0a050224be04d9eb15d3f13899a066dd3c6fe8d21c3"
+    },
+    {
+      "path": "includes/class-scha-prompt-policy.php",
+      "size": 6768,
+      "sha256": "b13e83a79d39cd8ea3401c67113ead447d93e80903139ba01cb370f28bedafd4"
+    },
+    {
+      "path": "includes/class-scha-provider-registry.php",
+      "size": 1427,
+      "sha256": "c728ef77df6015db93a3c5bf366604344af15a542ae0cb77e2e2af92c48dc259"
+    },
+    {
+      "path": "includes/class-scha-public.php",
+      "size": 5690,
+      "sha256": "fb65f6bfe4e68251972d5746ac1b4a4e30b1709de67c93601c4bbfbe212a9ae1"
+    },
+    {
+      "path": "includes/class-scha-rate-limiter.php",
+      "size": 2209,
+      "sha256": "cdbde2cb70ef652f57b1b3e8505bfc091dae903a418b1fbfa2ca05404c04fb21"
+    },
+    {
+      "path": "includes/class-scha-rest-controller.php",
+      "size": 6395,
+      "sha256": "64642cba64e8c9db78b0dbc594fcd1fcf5c8df65da40a6e1fa70f57b5ba0cd05"
+    },
+    {
+      "path": "includes/class-scha-retention.php",
+      "size": 2845,
+      "sha256": "1af2a3fbb39ea36e93082bcdefbb73b24c22ad53113ea72ae2a85612a9f4de37"
+    },
+    {
+      "path": "includes/class-scha-retrieval.php",
+      "size": 4740,
+      "sha256": "6dbec876b703b5f167dbbfc95423dd5a78c7912fbb5040666e4e77c94341cdd6"
+    },
+    {
+      "path": "includes/class-scha-router.php",
+      "size": 3439,
+      "sha256": "d75d4518c73ada6acb29844c134e3aa9d438d3adc22707dc6f19a77df65b117b"
+    },
+    {
+      "path": "includes/class-scha-scheduler.php",
+      "size": 1372,
+      "sha256": "36223acafd3565b4130823927d49e37c1a7c4065f69f7e4a525ce820d74da5d8"
+    },
+    {
+      "path": "includes/class-scha-session-service.php",
+      "size": 14226,
+      "sha256": "5dd46fd672bf2174f55a7aeb627cc2d315d93f878d0f0e68fe0ae597c2b9a56f"
+    },
+    {
+      "path": "includes/class-scha-settings.php",
+      "size": 6979,
+      "sha256": "fdb007ef56494a0680d10cf787c10ababdce1e4546042e587ed6875fe0a76aed"
+    },
+    {
+      "path": "includes/class-scha-usage-ledger.php",
+      "size": 4001,
+      "sha256": "04f3f4b4a2acd4c27706509f4ce6c397a347726b7fcea9ea0112138253fc6132"
+    },
+    {
+      "path": "includes/providers/class-scha-provider-bridge.php",
+      "size": 1491,
+      "sha256": "3f279e2edf3b0c74fcf4d976015397441acdd7bd61cbed163b812c38793dec78"
+    },
+    {
+      "path": "includes/providers/class-scha-provider-claude.php",
+      "size": 3961,
+      "sha256": "7cd84b4d2d5b5b2b44b32d9d1f05fd55e32f362493fba696303e33ff9801c5af"
+    },
+    {
+      "path": "includes/providers/class-scha-provider-http-json.php",
+      "size": 6271,
+      "sha256": "87bc3b4b648f358179fbb3a773b3e22867c7934ad8bdd7cda05f53349b3a4127"
+    },
+    {
+      "path": "includes/providers/class-scha-provider-interface.php",
+      "size": 217,
+      "sha256": "e95f6f25ae2c0690361aee160ef8b8e82bd209fbabdb74e30ff94b076008c116"
+    },
+    {
+      "path": "includes/providers/class-scha-provider-local.php",
+      "size": 2286,
+      "sha256": "7ef39185513e83d25aaf01081839a0edf4b128e7c37f05aa303ace1207fd2757"
+    },
+    {
+      "path": "readme.txt",
+      "size": 1298,
+      "sha256": "7a34cb059a5c507e9c324975461c7a25659ca51c76191b76ba862472dec41128"
+    },
+    {
+      "path": "templates/accessibility.php",
+      "size": 1644,
+      "sha256": "d56e2c9ac5c35bc943b0a34b21f64255545299c072deb372acf116b8865dc883"
+    },
+    {
+      "path": "templates/governance.php",
+      "size": 2480,
+      "sha256": "0703d9e11bdd67fde19949849e2651a203344c3940a075d3d7a9022e6198ac9d"
+    },
+    {
+      "path": "templates/history.php",
+      "size": 871,
+      "sha256": "9e769efa83db75ef94a6ab769bc91b6f4216065d1bcd2fbd645b69a5bb69fc64"
+    },
+    {
+      "path": "templates/home.php",
+      "size": 5907,
+      "sha256": "c232028bda03e2925b7007fc341597023e9f55b5ca6942536bf0694c443fba9c"
+    },
+    {
+      "path": "templates/not-found.php",
+      "size": 750,
+      "sha256": "3cf59ad2cc369e0e626171c28671d33db4e9a7a6769587be18a7411096739de9"
+    },
+    {
+      "path": "templates/session.php",
+      "size": 2861,
+      "sha256": "01160b8f277ff0dba5b9bb5cee00837e6b9f90144ab02873a35eb561be9805cd"
+    },
+    {
+      "path": "templates/sources.php",
+      "size": 3493,
+      "sha256": "a6d073935ff5ce340389a40cd9a1d440ad221ca8c038d32f0307701d5736c530"
+    },
+    {
+      "path": "uninstall.php",
+      "size": 1684,
+      "sha256": "2f2eca5c4246bf9607395c4c3f0b059a7a000e7dc8ca631b7e97f383364414e8"
+    }
+  ]
+}

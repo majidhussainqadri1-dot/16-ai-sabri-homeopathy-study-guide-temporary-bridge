@@ -19,7 +19,7 @@ final class SCHA_Outbox {
             $version,
             sanitize_key( $aggregate_type ),
             sanitize_text_field( $aggregate_id ),
-            wp_json_encode( $payload ),
+            wp_json_encode( SCHA_Observability::sanitize_payload( $payload ) ),
             sanitize_text_field( $dedupe_key ),
             current_time( 'mysql', true ),
             current_time( 'mysql', true )

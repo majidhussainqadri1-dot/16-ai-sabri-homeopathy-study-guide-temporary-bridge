@@ -1,7 +1,18 @@
-# Migration and Rollback
+# Migration and Rollback — 1.x to 2.1.0
 
-Activation applies idempotent schema version 1.1.0 through `dbDelta`, seeds the versioned safety policy and installs schedules/capabilities. Upgrades use a transient migration lock.
+## Preflight
 
-Before deployment: create and verify a restorable database/files backup, record the current plugin version and schema, test fresh activation and upgrade on staging, and export configuration without secrets.
+- Export database and files; prove isolated restore.
+- Record exact plugin/version/schema, row counts and checksums.
+- Confirm WordPress 7.0+, PHP 8.3+, File 00 claims contract and canonical companion owners.
+- Configure provider secrets outside repository and import only approved corpus sources.
 
-Rollback: disable File 16 routes, switch provider to local or disable the plugin, restore the prior plugin package, and restore the database snapshot when a schema rollback is required. Uninstall is non-destructive by default; destructive purge requires explicit `SCHA_PURGE_ON_UNINSTALL` authorization.
+## Upgrade
+
+`dbDelta` under an activation/upgrade lock adds assistant mode, claims version, legal hold, encryption version and AI Teacher queue fields/table. Existing plaintext messages remain readable but new writes are encrypted; a controlled background migration may re-encrypt legacy content after backup/verification. Old paid-entitlement user meta is ignored by runtime.
+
+## Rollback
+
+Disable provider/AI Teacher kill switches, stop cron, preserve the database, restore the pre-upgrade files/database together, clear caches/rewrite rules and reconcile outbox/search projections. Do not downgrade after irreversible legacy-message re-encryption unless the old version can read the `scha2` envelope. Non-destructive uninstall is default; purge requires both constant and option.
+
+The historical GitHub repository name remains a compatibility alias. Canonical package folder/slug are already correct; any repository rename requires an explicit external change record and redirects.
