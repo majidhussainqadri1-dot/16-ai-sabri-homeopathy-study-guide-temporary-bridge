@@ -20,7 +20,11 @@ jobs:
         run: |
           set -euo pipefail
           test -d .materialize
-          cat .materialize/file16-part-* | base64 --decode > /tmp/file16-reviewed.tar.gz
+          {
+            head -c 8000 .materialize/file16-part-00
+            for part in .materialize/file16-part-{01..13}; do cat "$part"; done
+          } | base64 --decode > /tmp/file16-reviewed.tar.gz
+          gzip -t /tmp/file16-reviewed.tar.gz
           rm -rf 16-sabri-classical-homeopathy-ai scripts tests dist
           rm -f README.md IMPLEMENTATION-REPORT.md .github/workflows/ci.yml
           tar -xzf /tmp/file16-reviewed.tar.gz -C .
