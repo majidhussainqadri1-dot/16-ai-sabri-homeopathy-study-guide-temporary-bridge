@@ -10,7 +10,6 @@ permissions:
 
 jobs:
   materialize:
-    if: ${{ hashFiles('.materialize/file16-part-*') != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,6 +19,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          test -d .materialize
           cat .materialize/file16-part-* | base64 --decode > /tmp/file16-reviewed.tar.gz
           rm -rf 16-sabri-classical-homeopathy-ai scripts tests dist
           rm -f README.md IMPLEMENTATION-REPORT.md .github/workflows/ci.yml
