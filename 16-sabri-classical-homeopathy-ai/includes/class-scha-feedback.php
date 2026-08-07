@@ -8,7 +8,7 @@ final class SCHA_Feedback {
         $messages = SCHA_Database::table( 'messages' );
         $sessions = SCHA_Database::table( 'sessions' );
         $message = $wpdb->get_row(
-            $wpdb->prepare( "SELECT m.*,s.owner_id,s.public_id session_public_id FROM $messages m INNER JOIN $sessions s ON s.id=m.session_id WHERE m.public_id=%s LIMIT 1", $message_public_id ),
+            $wpdb->prepare( "SELECT m.*,s.owner_id,s.public_id session_public_id FROM $messages m INNER JOIN $sessions s ON s.id=m.session_id WHERE m.public_id=%s AND m.role='assistant' LIMIT 1", $message_public_id ),
             ARRAY_A
         );
         if ( ! $message || absint( $message['owner_id'] ) !== get_current_user_id() ) {

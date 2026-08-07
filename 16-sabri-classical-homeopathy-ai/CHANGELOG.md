@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.2.0 — 2026-08-07
+
+- Forty-round post-correction audit release with immediate defect repair and fresh retest after every defect-bearing round.
+- Removed local WordPress administrator capability as a substitute for canonical File 00 Founder identity and closed File 00 fail-closed eligibility bypasses.
+- Hardened session encryption envelopes, protected authenticated source-catalog caching/indexing, REST no-store headers and browser privacy/resilience.
+- Expanded multilingual input/output clinical-safety patterns and citation coverage enforcement.
+- Strengthened corpus rights/access re-review, retrieval ACL synchronization and source diversity.
+- Added provider response-size bounds, transactional fair-use rate-limit locking and atomic policy activation.
+- Added AI Teacher stale-claim recovery, publication authorization separation, strict state transitions, exponential retry accounting and canonical handoff reconciliation.
+- Added outbox lease recovery, provider deletion confirmation contract, transactional privacy erasure/retention checks and assistant-only feedback integrity.
+- Hardened schema migration locking and post-migration invariant verification.
+- Expanded regression/negative tests, deterministic package evidence and the forty-round audit register.
+
 ## 2.1.0 — 2026-08-07
 
 - Four-plan corrective release.

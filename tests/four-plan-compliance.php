@@ -9,12 +9,14 @@ $iterator = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $plug
 foreach ( $iterator as $file ) if ( $file->isFile() && in_array( strtolower( $file->getExtension() ), array( 'php', 'js', 'css' ), true ) ) $all .= "\n" . file_get_contents( $file->getPathname() );
 
 $main = $read( '16-sabri-classical-homeopathy-ai.php' );
-$assert( str_contains( $main, 'Version: 2.1.0' ), 'release version not 2.1.0' );
+$assert( str_contains( $main, 'Version: 2.2.0' ), 'release version not 2.2.0' );
 $assert( str_contains( $main, 'Requires at least: 7.0' ) && str_contains( $main, 'Requires PHP: 8.3' ), 'platform baseline missing' );
 $assert( str_contains( $read( 'includes/class-scha-entitlements.php' ), 'single-free-tier' ), 'single free tier missing' );
 $assert( ! preg_match( '/PKR\s*400|separate AI add-on|ai-addon/iu', $all ), 'superseded paid access language remains in executable/UI code' );
 $assert( str_contains( $read( 'includes/class-scha-four-plan-compliance.php' ), 'donor_advantage' ), 'donor neutrality manifest missing' );
-$assert( str_contains( $read( 'includes/class-scha-account-context.php' ), 'sabri_membership_claims_v2' ) && str_contains( $read( 'includes/class-scha-account-context.php' ), 'membership-provider-unavailable' ), 'live fail-closed File 00 claims missing' );
+$account = $read( 'includes/class-scha-account-context.php' );
+$assert( str_contains( $account, 'sabri_membership_claims_v2' ) && str_contains( $account, 'membership-provider-unavailable' ), 'live fail-closed File 00 claims missing' );
+$assert( ! str_contains( $account, "current_user_can( SCHA_Capabilities::MANAGE_AI )" ) && ! str_contains( $account, "current_user_can( 'manage_options' )" ), 'local admin capability still substitutes for Founder identity' );
 $assert( str_contains( $read( 'includes/class-scha-session-service.php' ), 'SCHA_Crypto::encrypt' ) && str_contains( $read( 'includes/class-scha-session-service.php' ), 'legal_hold' ), 'encrypted sessions/legal hold missing' );
 $assert( str_contains( $read( 'includes/class-scha-ai-service.php' ), 'SCHA_Output_Policy::validate' ) && str_contains( $read( 'includes/class-scha-ai-service.php' ), 'SCHA_Citation_Validator::validate' ), 'output/citation gates missing' );
 $assert( str_contains( $read( 'includes/class-scha-guest-auth.php' ), 'X-SCHA' ) || str_contains( $read( 'includes/class-scha-rest-controller.php' ), 'X-SCHA-Guest-Token' ), 'guest request token missing' );

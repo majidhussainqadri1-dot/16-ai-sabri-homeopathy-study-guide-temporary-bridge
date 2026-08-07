@@ -42,11 +42,20 @@ final class SCHA_Citation_Validator {
             );
         }
 
-        $plain_length = function_exists( 'mb_strlen' ) ? mb_strlen( wp_strip_all_tags( $answer ) ) : strlen( wp_strip_all_tags( $answer ) );
-        if ( $plain_length > 120 && count( $citations ) < 1 ) {
-            return array( 'valid' => false, 'reason' => 'insufficient_citations', 'answer' => $answer, 'citations' => array() );
+        foreach ( preg_split( '/\R+/u', $answer ) ?: array() as $block ) {
+            if ( self::substantive_block_requires_citation( (string) $block ) && ! preg_match( '/\[S\d+\]/', $block ) ) {
+                return array( 'valid' => false, 'reason' => 'citation_coverage', 'answer' => $answer, 'citations' => array() );
+            }
         }
 
         return array( 'valid' => true, 'reason' => '', 'answer' => $answer, 'citations' => $citations );
+    }
+
+    private static function substantive_block_requires_citation( string $block ): bool {
+        $plain = trim( wp_strip_all_tags( preg_replace( '/^[#>*\-\d.\s]+/u', '', $block ) ?? $block ) );
+        if ( '' === $plain ) return false;
+        if ( preg_match( '/^(the approved educational sources contain|this is educational source retrieval|ai[- ]generated and human[- ]governed|safe next steps|citations?|sources?)\b/iu', $plain ) ) return false;
+        $length = function_exists( 'mb_strlen' ) ? mb_strlen( $plain ) : strlen( $plain );
+        return $length >= 90;
     }
 }

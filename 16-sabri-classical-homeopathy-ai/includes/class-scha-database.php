@@ -10,7 +10,7 @@ final class SCHA_Database {
         return $wpdb->prefix . 'scha_' . $name;
     }
 
-    public static function install(): void {
+    public static function install(): true|WP_Error {
         global $wpdb;
 
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
@@ -240,10 +240,19 @@ final class SCHA_Database {
         ) $charset;";
 
         foreach ( $sql as $statement ) {
+            $wpdb->last_error = '';
             dbDelta( $statement );
+            if ( '' !== (string) $wpdb->last_error ) {
+                return new WP_Error( 'scha_schema_install_failed', __( 'The File 16 database schema could not be installed or upgraded.', SCHA_TEXT_DOMAIN ) );
+            }
+        }
+
+        if ( ! self::schema_invariants_hold() ) {
+            return new WP_Error( 'scha_schema_incomplete', __( 'The File 16 database schema is incomplete after migration.', SCHA_TEXT_DOMAIN ) );
         }
 
         update_option( 'scha_schema_version', self::SCHEMA_VERSION, false );
+        return true;
     }
 
     public static function tables_exist(): bool {
@@ -252,6 +261,28 @@ final class SCHA_Database {
             $table = self::table( $name );
             if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) !== $table ) {
                 return false;
+            }
+        }
+        return true;
+    }
+
+    public static function schema_invariants_hold(): bool {
+        global $wpdb;
+        $required = array(
+            'sessions'     => array( 'public_id', 'owner_id', 'claims_version', 'assistant_mode', 'legal_hold', 'retention_until', 'version' ),
+            'messages'     => array( 'session_id', 'content', 'encryption_version', 'citations', 'idempotency_key' ),
+            'corpus_items' => array( 'owner_file', 'owner_item_id', 'item_version', 'access_class', 'approved_use', 'rights_evidence_id', 'rights_reviewed_at', 'chunk_status' ),
+            'chunks'       => array( 'item_id', 'chunk_index', 'access_class', 'checksum' ),
+            'usage'        => array( 'user_id', 'session_id', 'request_hash', 'idempotency_key', 'cost_micros', 'period_key' ),
+            'outbox'       => array( 'event_name', 'event_version', 'payload', 'dedupe_key', 'status', 'available_at', 'attempts' ),
+            'teacher_posts'=> array( 'schedule_key', 'slot_date', 'slot_time', 'status', 'review_required', 'attempts', 'available_at', 'version' ),
+        );
+        foreach ( $required as $name => $columns ) {
+            $table = self::table( $name );
+            if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) !== $table ) return false;
+            foreach ( $columns as $column ) {
+                $exists = $wpdb->get_var( $wpdb->prepare( "SHOW COLUMNS FROM `$table` LIKE %s", $column ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- internal table allowlist.
+                if ( $column !== $exists ) return false;
             }
         }
         return true;

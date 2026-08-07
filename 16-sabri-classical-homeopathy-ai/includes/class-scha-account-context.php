@@ -47,16 +47,15 @@ final class SCHA_Account_Context {
         $approved_states = array( 'approved', 'active', 'verified' );
         $approved = $claims_available && ! $blocked && ! $risk_hold && $guardian_ok && $consent_ok && in_array( $status, $approved_states, true );
 
-        $founder = current_user_can( SCHA_Capabilities::MANAGE_AI )
-            || current_user_can( 'manage_options' )
-            || ! empty( $claims['institutional_founder'] )
-            || ! empty( $claims['founder'] );
-        $verified_doctor = ! empty( $claims['verified_doctor'] ) && ! $blocked && ! $risk_hold;
+        // Founder identity is an authoritative File 00 claim, not a local WordPress/admin capability.
+        // Administrative capability may govern this module without granting founder/internal corpus access.
+        $founder = ! empty( $claims['institutional_founder'] ) || ! empty( $claims['founder'] );
+        $verified_doctor = $approved && ! empty( $claims['verified_doctor'] );
 
         return array(
             'user_id'          => $user_id,
             'authenticated'    => true,
-            'approved'         => $founder || $approved,
+            'approved'         => $approved,
             'blocked'          => $blocked,
             'verified_doctor'  => $verified_doctor,
             'founder'          => $founder,
@@ -65,7 +64,7 @@ final class SCHA_Account_Context {
             'risk_hold'        => $risk_hold,
             'consent_ok'       => $consent_ok,
             'claims_version'   => sanitize_text_field( (string) ( $claims['claims_version'] ?? $claims['version'] ?? 'legacy-v1' ) ),
-            'reason'           => ! $claims_available && ! $founder ? 'membership-provider-unavailable' : self::reason( $blocked, $risk_hold, $guardian_ok, $consent_ok, $status ),
+            'reason'           => ! $claims_available ? 'membership-provider-unavailable' : self::reason( $blocked, $risk_hold, $guardian_ok, $consent_ok, $status ),
             'raw'              => $claims,
         );
     }

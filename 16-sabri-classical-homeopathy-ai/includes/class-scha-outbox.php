@@ -36,32 +36,37 @@ final class SCHA_Outbox {
         global $wpdb;
         $table = SCHA_Database::table( 'outbox' );
         $now   = current_time( 'mysql', true );
-        $rows  = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $table WHERE status IN ('pending','retry') AND available_at <= %s ORDER BY id ASC LIMIT 50", $now ), ARRAY_A ) ?: array();
 
+        // available_at acts as a processing lease while status=processing. A worker
+        // crash therefore cannot strand an event permanently.
+        $recovered = $wpdb->query( $wpdb->prepare( "UPDATE $table SET status='retry',available_at=%s WHERE status='processing' AND available_at <= %s", $now, $now ) );
+        if ( $recovered > 0 ) {
+            SCHA_Observability::audit( 'outbox_stale_claims_recovered', 'outbox', 'batch', array( 'count' => absint( $recovered ) ), 'event-delivery-recovery' );
+        }
+
+        $rows  = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $table WHERE status IN ('pending','retry') AND available_at <= %s ORDER BY id ASC LIMIT 50", $now ), ARRAY_A ) ?: array();
         foreach ( $rows as $row ) {
-            $locked = $wpdb->query( $wpdb->prepare( "UPDATE $table SET status='processing', attempts=attempts+1 WHERE id=%d AND status IN ('pending','retry')", $row['id'] ) );
-            if ( 1 !== $locked ) {
-                continue;
-            }
+            $lease_until = gmdate( 'Y-m-d H:i:s', time() + 30 * MINUTE_IN_SECONDS );
+            $locked = $wpdb->query( $wpdb->prepare( "UPDATE $table SET status='processing',attempts=attempts+1,available_at=%s WHERE id=%d AND status IN ('pending','retry') AND available_at <= %s", $lease_until, $row['id'], $now ) );
+            if ( 1 !== $locked ) continue;
+
             try {
                 $payload = json_decode( (string) $row['payload_json'], true ) ?: array();
                 $hook    = preg_replace( '/[^A-Za-z0-9_.:-]/', '', (string) $row['event_name'] ) ?: 'UnknownEvent';
                 do_action( 'scha_event_' . $hook, $payload, $row );
                 do_action( 'scha_event', $hook . '.' . $row['event_version'], $payload, $row );
-                $wpdb->update( $table, array( 'status' => 'delivered' ), array( 'id' => $row['id'] ), array( '%s' ), array( '%d' ) );
+                $updated = $wpdb->update( $table, array( 'status' => 'delivered' ), array( 'id' => $row['id'], 'status' => 'processing' ), array( '%s' ), array( '%d', '%s' ) );
+                if ( 1 !== $updated ) throw new RuntimeException( 'Outbox delivery state could not be finalized.' );
             } catch ( Throwable $e ) {
                 $attempts = absint( $row['attempts'] ) + 1;
                 $status   = $attempts >= 8 ? 'dead_letter' : 'retry';
                 $delay    = min( DAY_IN_SECONDS, ( 2 ** min( $attempts, 10 ) ) * MINUTE_IN_SECONDS );
                 $wpdb->update(
                     $table,
-                    array(
-                        'status'       => $status,
-                        'available_at' => gmdate( 'Y-m-d H:i:s', time() + $delay ),
-                    ),
-                    array( 'id' => $row['id'] ),
+                    array( 'status' => $status, 'available_at' => gmdate( 'Y-m-d H:i:s', time() + $delay ) ),
+                    array( 'id' => $row['id'], 'status' => 'processing' ),
                     array( '%s', '%s' ),
-                    array( '%d' )
+                    array( '%d', '%s' )
                 );
                 SCHA_Observability::safe_error( $e, SCHA_Observability::trace_id() );
             }

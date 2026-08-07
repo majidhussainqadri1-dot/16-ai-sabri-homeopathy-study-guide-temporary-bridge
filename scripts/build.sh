@@ -2,7 +2,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 NAME="16-sabri-classical-homeopathy-ai"
-VERSION="2.1.0"
+VERSION="2.2.0"
 DIST="$ROOT/dist"
 STAGE="$(mktemp -d)"
 trap 'rm -rf "$STAGE"' EXIT

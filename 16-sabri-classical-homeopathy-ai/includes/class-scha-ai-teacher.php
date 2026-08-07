@@ -93,6 +93,7 @@ final class SCHA_AI_Teacher {
             return 0;
         }
         $table = SCHA_Database::table( 'teacher_posts' );
+        self::recover_stale_generation_claims( $table );
         $rows = $wpdb->get_results(
             $wpdb->prepare(
                 "SELECT * FROM $table WHERE status IN ('queued','failed') AND attempts < 5 AND available_at <= %s ORDER BY available_at ASC,id ASC LIMIT %d",
@@ -213,7 +214,7 @@ final class SCHA_AI_Teacher {
         SCHA_Outbox::publish( $auto_allowed ? 'AITeacherDraftApproved' : 'AITeacherReviewRequired', 'ai_teacher_post', (string) $row['public_id'], array( 'post_id' => $row['public_id'], 'category' => $category, 'human_review_required' => ! $auto_allowed, 'provider_disclosure' => 'Powered by Claude AI when configured', 'sharia_state' => $governance['sharia_state'] ), 'teacher-generated-' . $row['schedule_key'] );
 
         if ( $auto_allowed ) {
-            return self::publish( (string) $row['public_id'], true );
+            return self::publish_automatic( (string) $row['public_id'] );
         }
         do_action( 'sabri_file22_ai_teacher_draft_ready_v1', self::public_post( self::get( (string) $row['public_id'] ) ) );
         return true;
@@ -225,10 +226,13 @@ final class SCHA_AI_Teacher {
             return new WP_Error( 'scha_teacher_forbidden', __( 'You are not authorized to review AI Teacher drafts.', SCHA_TEXT_DOMAIN ), array( 'status' => 403 ) );
         }
         $post = self::get( $public_id );
-        if ( ! $post || ! in_array( $post['status'], array( 'review_required', 'approved' ), true ) ) {
+        if ( ! $post ) return new WP_Error( 'scha_teacher_not_found', __( 'AI Teacher draft not found.', SCHA_TEXT_DOMAIN ), array( 'status' => 404 ) );
+        if ( 'approved' === $post['status'] ) return true;
+        if ( 'review_required' !== $post['status'] ) {
             return new WP_Error( 'scha_teacher_invalid_state', __( 'This AI Teacher draft is not awaiting approval.', SCHA_TEXT_DOMAIN ), array( 'status' => 409 ) );
         }
-        $wpdb->update( SCHA_Database::table( 'teacher_posts' ), array( 'status' => 'approved', 'review_required' => 0, 'reviewed_by' => get_current_user_id(), 'reviewed_at' => current_time( 'mysql', true ), 'updated_at' => current_time( 'mysql', true ) ), array( 'id' => $post['id'] ) );
+        $updated = $wpdb->update( SCHA_Database::table( 'teacher_posts' ), array( 'status' => 'approved', 'review_required' => 0, 'reviewed_by' => get_current_user_id(), 'reviewed_at' => current_time( 'mysql', true ), 'updated_at' => current_time( 'mysql', true ) ), array( 'id' => $post['id'], 'status' => 'review_required' ) );
+        if ( 1 !== $updated ) return new WP_Error( 'scha_teacher_review_conflict', __( 'The draft changed while it was being reviewed. Refresh and retry.', SCHA_TEXT_DOMAIN ), array( 'status' => 409 ) );
         SCHA_Observability::audit( 'ai_teacher_draft_approved', 'ai_teacher_post', $public_id, array(), 'founder-or-authorized-human-review' );
         return true;
     }
@@ -239,10 +243,13 @@ final class SCHA_AI_Teacher {
             return new WP_Error( 'scha_teacher_forbidden', __( 'You are not authorized to review AI Teacher drafts.', SCHA_TEXT_DOMAIN ), array( 'status' => 403 ) );
         }
         $post = self::get( $public_id );
-        if ( ! $post ) {
-            return new WP_Error( 'scha_teacher_not_found', __( 'AI Teacher draft not found.', SCHA_TEXT_DOMAIN ), array( 'status' => 404 ) );
+        if ( ! $post ) return new WP_Error( 'scha_teacher_not_found', __( 'AI Teacher draft not found.', SCHA_TEXT_DOMAIN ), array( 'status' => 404 ) );
+        $allowed = array( 'review_required', 'approved', 'publish_pending' );
+        if ( ! in_array( $post['status'], $allowed, true ) ) {
+            return new WP_Error( 'scha_teacher_invalid_state', __( 'This record can no longer be rejected as a draft. A published item must use the canonical correction or retraction workflow.', SCHA_TEXT_DOMAIN ), array( 'status' => 409 ) );
         }
-        $wpdb->update( SCHA_Database::table( 'teacher_posts' ), array( 'status' => 'rejected', 'reviewed_by' => get_current_user_id(), 'reviewed_at' => current_time( 'mysql', true ), 'error_code' => sanitize_key( $reason ?: 'human_rejection' ), 'updated_at' => current_time( 'mysql', true ) ), array( 'id' => $post['id'] ) );
+        $updated = $wpdb->query( $wpdb->prepare( "UPDATE " . SCHA_Database::table( 'teacher_posts' ) . " SET status='rejected',reviewed_by=%d,reviewed_at=%s,error_code=%s,updated_at=%s,version=version+1 WHERE id=%d AND status=%s", get_current_user_id(), current_time( 'mysql', true ), sanitize_key( $reason ?: 'human_rejection' ), current_time( 'mysql', true ), $post['id'], $post['status'] ) );
+        if ( 1 !== $updated ) return new WP_Error( 'scha_teacher_review_conflict', __( 'The draft changed while it was being reviewed. Refresh and retry.', SCHA_TEXT_DOMAIN ), array( 'status' => 409 ) );
         SCHA_Observability::audit( 'ai_teacher_draft_rejected', 'ai_teacher_post', $public_id, array( 'reason' => sanitize_key( $reason ) ), 'founder-or-authorized-human-review' );
         return true;
     }
@@ -250,30 +257,39 @@ final class SCHA_AI_Teacher {
     public static function process_publication_queue( int $limit = 4 ): int {
         global $wpdb;
         $table = SCHA_Database::table( 'teacher_posts' );
+        self::recover_stale_publication_claims( $table );
         $ids = $wpdb->get_col( $wpdb->prepare( "SELECT public_id FROM $table WHERE status='publish_pending' AND available_at <= %s ORDER BY available_at ASC,id ASC LIMIT %d", current_time( 'mysql', true ), min( 8, max( 1, $limit ) ) ) ) ?: array();
         $processed = 0;
         foreach ( $ids as $id ) {
-            self::publish( (string) $id, true );
+            self::publish_automatic( (string) $id );
             ++$processed;
         }
         return $processed;
     }
 
-    public static function publish( string $public_id, bool $policy_auto = false ): true|WP_Error {
+    public static function publish( string $public_id ): true|WP_Error {
+        if ( ! SCHA_Capabilities::current_user_can_manage() ) return new WP_Error( 'scha_teacher_forbidden', __( 'You are not authorized to publish AI Teacher drafts.', SCHA_TEXT_DOMAIN ), array( 'status' => 403 ) );
+        return self::publish_internal( $public_id, false );
+    }
+
+    private static function publish_automatic( string $public_id ): true|WP_Error {
+        return self::publish_internal( $public_id, true );
+    }
+
+    private static function publish_internal( string $public_id, bool $automatic ): true|WP_Error {
         global $wpdb;
         $post = self::get( $public_id );
         if ( ! $post ) return new WP_Error( 'scha_teacher_not_found', __( 'AI Teacher draft not found.', SCHA_TEXT_DOMAIN ), array( 'status' => 404 ) );
-        if ( ! $policy_auto && ! SCHA_Capabilities::current_user_can_manage() ) return new WP_Error( 'scha_teacher_forbidden', __( 'You are not authorized to publish AI Teacher drafts.', SCHA_TEXT_DOMAIN ), array( 'status' => 403 ) );
-        $allowed_states = $policy_auto ? array( 'publish_pending', 'approved' ) : array( 'approved' );
-        if ( ! in_array( $post['status'], $allowed_states, true ) ) return new WP_Error( 'scha_teacher_invalid_state', __( 'The AI Teacher draft must be approved before publication.', SCHA_TEXT_DOMAIN ), array( 'status' => 409 ) );
+        $required_state = $automatic ? 'publish_pending' : 'approved';
+        if ( $required_state !== $post['status'] ) return new WP_Error( 'scha_teacher_invalid_state', __( 'The AI Teacher draft is not in a publishable state.', SCHA_TEXT_DOMAIN ), array( 'status' => 409 ) );
 
         $table = SCHA_Database::table( 'teacher_posts' );
-        $placeholders = implode( ',', array_fill( 0, count( $allowed_states ), '%s' ) );
-        $args = array_merge( array( current_time( 'mysql', true ), $post['id'] ), $allowed_states );
-        $claimed = $wpdb->query( $wpdb->prepare( "UPDATE $table SET status='publishing',updated_at=%s,version=version+1 WHERE id=%d AND status IN ($placeholders)", $args ) );
+        $now = current_time( 'mysql', true );
+        $claimed = $wpdb->query( $wpdb->prepare( "UPDATE $table SET status='publishing',attempts=attempts+1,updated_at=%s,version=version+1 WHERE id=%d AND status=%s", $now, $post['id'], $required_state ) );
         if ( 1 !== $claimed ) return new WP_Error( 'scha_teacher_publish_in_progress', __( 'This AI Teacher draft is already being published or its state changed.', SCHA_TEXT_DOMAIN ), array( 'status' => 409 ) );
+        $publication_attempt = absint( $post['attempts'] ?? 0 ) + 1;
 
-        $payload = self::public_post( array_merge( $post, array( 'status' => 'publishing' ) ) );
+        $payload = self::public_post( array_merge( $post, array( 'status' => 'publishing', 'attempts' => $publication_attempt ) ) );
         $payload['author'] = self::ACCOUNT_ID;
         $payload['labels'] = array( 'ai-generated', 'human-governed', 'source-linked' );
         $payload['clinical_authority'] = false;
@@ -287,17 +303,18 @@ final class SCHA_AI_Teacher {
             SCHA_Observability::safe_error( $e, SCHA_Observability::trace_id() );
         }
         if ( ! is_array( $result ) || empty( $result['object_id'] ) ) {
-            $retry_state = $policy_auto ? 'publish_pending' : 'approved';
-            $delay = min( DAY_IN_SECONDS, max( 5 * MINUTE_IN_SECONDS, ( 2 ** min( 8, absint( $post['attempts'] ?? 1 ) ) ) * MINUTE_IN_SECONDS ) );
-            $wpdb->update( $table, array( 'status' => $retry_state, 'available_at' => gmdate( 'Y-m-d H:i:s', time() + $delay ), 'error_code' => 'publishing-owner-unavailable', 'updated_at' => current_time( 'mysql', true ) ), array( 'id' => $post['id'], 'status' => 'publishing' ) );
+            $retry_state = $automatic ? 'publish_pending' : 'approved';
+            $delay = min( DAY_IN_SECONDS, max( 5 * MINUTE_IN_SECONDS, ( 2 ** min( 8, $publication_attempt ) ) * MINUTE_IN_SECONDS ) );
+            $restored = $wpdb->update( $table, array( 'status' => $retry_state, 'available_at' => gmdate( 'Y-m-d H:i:s', time() + $delay ), 'error_code' => 'publishing-owner-unavailable', 'updated_at' => current_time( 'mysql', true ) ), array( 'id' => $post['id'], 'status' => 'publishing' ) );
+            if ( false === $restored ) SCHA_Observability::safe_error( 'AI Teacher publication retry state could not be restored.', SCHA_Observability::trace_id() );
             do_action( 'sabri_file22_ai_teacher_draft_ready_v1', $payload );
             return new WP_Error( 'scha_teacher_owner_unavailable', __( 'The canonical publishing owner is unavailable. The approved draft remains queued without creating a duplicate post.', SCHA_TEXT_DOMAIN ), array( 'status' => 503 ) );
         }
 
         $updated = $wpdb->update( $table, array( 'status' => 'published', 'published_object_id' => sanitize_text_field( (string) $result['object_id'] ), 'published_url' => esc_url_raw( (string) ( $result['url'] ?? '' ) ), 'error_code' => '', 'updated_at' => current_time( 'mysql', true ) ), array( 'id' => $post['id'], 'status' => 'publishing' ) );
-        if ( false === $updated ) return new WP_Error( 'scha_teacher_publish_state_failed', __( 'The canonical post was created but local publication state could not be finalized. Use the idempotency key for reconciliation.', SCHA_TEXT_DOMAIN ), array( 'status' => 500 ) );
+        if ( 1 !== $updated ) return new WP_Error( 'scha_teacher_publish_state_failed', __( 'The canonical post was created but local publication state could not be finalized. Use the idempotency key for reconciliation.', SCHA_TEXT_DOMAIN ), array( 'status' => 500 ) );
         SCHA_Outbox::publish( 'AITeacherPostPublished', 'ai_teacher_post', $public_id, array( 'post_id' => $public_id, 'owner_object_id' => $result['object_id'], 'url' => $result['url'] ?? '' ), 'teacher-published-' . $public_id );
-        SCHA_Observability::audit( 'ai_teacher_post_published', 'ai_teacher_post', $public_id, array( 'owner_object_id' => $result['object_id'], 'policy_auto' => $policy_auto ), 'canonical-content-owner-publication' );
+        SCHA_Observability::audit( 'ai_teacher_post_published', 'ai_teacher_post', $public_id, array( 'owner_object_id' => $result['object_id'], 'policy_auto' => $automatic, 'attempt' => $publication_attempt ), 'canonical-content-owner-publication' );
         return true;
     }
 
@@ -337,6 +354,22 @@ final class SCHA_AI_Teacher {
             'isVerifiedDoctor'   => false,
             'clinicalAuthority'  => false,
         );
+    }
+
+    private static function recover_stale_generation_claims( string $table ): void {
+        global $wpdb;
+        $now = current_time( 'mysql', true );
+        $stale = gmdate( 'Y-m-d H:i:s', time() - 20 * MINUTE_IN_SECONDS );
+        $recovered = $wpdb->query( $wpdb->prepare( "UPDATE $table SET status='failed',error_code='generation-worker-timeout',available_at=%s,updated_at=%s,version=version+1 WHERE status='generating' AND updated_at < %s", $now, $now, $stale ) );
+        if ( $recovered > 0 ) SCHA_Observability::audit( 'ai_teacher_stale_generation_recovered', 'ai_teacher_queue', 'generation', array( 'count' => absint( $recovered ) ), 'queue-recovery' );
+    }
+
+    private static function recover_stale_publication_claims( string $table ): void {
+        global $wpdb;
+        $now = current_time( 'mysql', true );
+        $stale = gmdate( 'Y-m-d H:i:s', time() - 20 * MINUTE_IN_SECONDS );
+        $recovered = $wpdb->query( $wpdb->prepare( "UPDATE $table SET status='publish_pending',error_code='publishing-worker-timeout',available_at=%s,updated_at=%s,version=version+1 WHERE status='publishing' AND updated_at < %s", $now, $now, $stale ) );
+        if ( $recovered > 0 ) SCHA_Observability::audit( 'ai_teacher_stale_publication_recovered', 'ai_teacher_queue', 'publication', array( 'count' => absint( $recovered ) ), 'queue-recovery' );
     }
 
     private static function fail( array $row, string $code, string $message ): WP_Error {

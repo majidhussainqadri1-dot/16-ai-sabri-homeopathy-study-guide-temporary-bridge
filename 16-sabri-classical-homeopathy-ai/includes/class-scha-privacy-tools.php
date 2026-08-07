@@ -81,21 +81,29 @@ final class SCHA_Privacy_Tools {
         ) ?: array();
 
         $removed = false;
+        $provider_pending = 0;
         foreach ( $rows as $session ) {
-            do_action( 'scha_provider_delete_session', $session['public_id'], $session['provider'] );
-            $wpdb->query( 'START TRANSACTION' );
+            $provider_delete = SCHA_Provider_Data_Lifecycle::delete_session( (string) $session['public_id'], (string) $session['provider'], 'wordpress-privacy-erasure' );
+            if ( in_array( $provider_delete['status'], array( 'pending', 'failed' ), true ) ) {
+                ++$provider_pending;
+                SCHA_Outbox::publish( 'AIProviderDeletionPending', 'ai_session', (string) $session['public_id'], array( 'session_id' => $session['public_id'], 'provider' => $session['provider'], 'status' => $provider_delete['status'] ), 'provider-delete-' . $session['public_id'] );
+            }
+
+            if ( false === $wpdb->query( 'START TRANSACTION' ) ) {
+                return array( 'items_removed' => $removed, 'items_retained' => true, 'messages' => array( __( 'The AI erasure transaction could not be started safely.', SCHA_TEXT_DOMAIN ) ), 'done' => false );
+            }
             try {
                 $message_ids = $wpdb->get_col( $wpdb->prepare( "SELECT id FROM $messages WHERE session_id=%d", $session['id'] ) ) ?: array();
                 if ( $message_ids ) {
                     $placeholders = implode( ',', array_fill( 0, count( $message_ids ), '%d' ) );
-                    $wpdb->query( $wpdb->prepare( "DELETE FROM $feedback WHERE message_id IN ($placeholders)", $message_ids ) );
+                    self::must_query( $wpdb->query( $wpdb->prepare( "DELETE FROM $feedback WHERE message_id IN ($placeholders)", $message_ids ) ), 'feedback erasure' );
                 }
-                $wpdb->delete( $usage, array( 'session_id' => $session['id'] ), array( '%d' ) );
-                $wpdb->delete( $messages, array( 'session_id' => $session['id'] ), array( '%d' ) );
-                $wpdb->delete( $sessions, array( 'id' => $session['id'] ), array( '%d' ) );
-                $wpdb->query( 'COMMIT' );
+                self::must_query( $wpdb->delete( $usage, array( 'session_id' => $session['id'] ), array( '%d' ) ), 'usage erasure' );
+                self::must_query( $wpdb->delete( $messages, array( 'session_id' => $session['id'] ), array( '%d' ) ), 'message erasure' );
+                self::must_query( $wpdb->delete( $sessions, array( 'id' => $session['id'] ), array( '%d' ) ), 'session erasure' );
+                self::must_query( $wpdb->query( 'COMMIT' ), 'erasure commit' );
                 $removed = true;
-                SCHA_Observability::audit( 'privacy_erasure_completed', 'ai_session', $session['public_id'], array(), 'wordpress-privacy-erasure' );
+                SCHA_Observability::audit( 'privacy_erasure_completed', 'ai_session', $session['public_id'], array( 'provider_deletion_status' => $provider_delete['status'] ), 'wordpress-privacy-erasure' );
             } catch ( Throwable $e ) {
                 $wpdb->query( 'ROLLBACK' );
                 SCHA_Observability::safe_error( $e, SCHA_Observability::trace_id() );
@@ -106,13 +114,20 @@ final class SCHA_Privacy_Tools {
         $remaining_deletable = absint( $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $sessions WHERE owner_id=%d AND legal_hold=0", $user->ID ) ) );
         $held = absint( $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $sessions WHERE owner_id=%d AND legal_hold=1", $user->ID ) ) );
         $messages_out = $held > 0 ? array( sprintf( _n( '%d AI session is retained under an authorized legal or security hold.', '%d AI sessions are retained under authorized legal or security holds.', $held, SCHA_TEXT_DOMAIN ), $held ) ) : array();
+        if ( $provider_pending > 0 ) {
+            $messages_out[] = sprintf( _n( 'Provider-side deletion confirmation is pending for %d erased AI session; the local copy was removed.', 'Provider-side deletion confirmation is pending for %d erased AI sessions; the local copies were removed.', $provider_pending, SCHA_TEXT_DOMAIN ), $provider_pending );
+        }
 
         return array(
             'items_removed'  => $removed,
-            'items_retained' => $held > 0,
+            'items_retained' => $held > 0 || $provider_pending > 0,
             'messages'       => $messages_out,
             'done'           => 0 === $remaining_deletable,
         );
+    }
+
+    private static function must_query( int|bool|null $result, string $operation ): void {
+        if ( false === $result || null === $result ) throw new RuntimeException( 'Database failure during ' . $operation . '.' );
     }
 
     public static function add_policy_content(): void {

@@ -12,7 +12,7 @@ final class SCHA_Health {
             'plan_version'   => array( 'ok' => true, 'value' => SCHA_PLAN_VERSION ),
             'php'            => array( 'ok' => version_compare( PHP_VERSION, '8.3', '>=' ), 'value' => PHP_VERSION ),
             'wordpress'      => array( 'ok' => version_compare( get_bloginfo( 'version' ), '7.0', '>=' ), 'value' => get_bloginfo( 'version' ) ),
-            'database'       => array( 'ok' => SCHA_Database::tables_exist(), 'value' => get_option( 'scha_schema_version', 'missing' ) ),
+            'database'       => array( 'ok' => SCHA_Database::tables_exist() && SCHA_Database::schema_invariants_hold() && SCHA_Database::SCHEMA_VERSION === (string) get_option( 'scha_schema_version', 'missing' ), 'value' => get_option( 'scha_schema_version', 'missing' ) ),
             'configured_provider' => array( 'ok' => $configured_provider->is_available(), 'value' => $configured_provider->key() ),
             'effective_provider'  => array( 'ok' => $effective_provider->is_available(), 'value' => $effective_provider->key() ),
             'retention_cron' => array( 'ok' => (bool) wp_next_scheduled( 'scha_retention_cron' ), 'value' => wp_next_scheduled( 'scha_retention_cron' ) ?: 0 ),

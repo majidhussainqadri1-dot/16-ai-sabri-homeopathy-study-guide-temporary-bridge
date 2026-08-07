@@ -6,5 +6,5 @@ files=[]
 for path in sorted(p for p in root.rglob('*') if p.is_file()):
     data=path.read_bytes()
     files.append({'path': path.relative_to(root).as_posix(), 'size': len(data), 'sha256': hashlib.sha256(data).hexdigest()})
-payload={'schema':'SCHA-source-manifest-v2','package':'16-sabri-classical-homeopathy-ai','version':'2.1.0','files':files}
+payload={'schema':'SCHA-source-manifest-v2','package':'16-sabri-classical-homeopathy-ai','version':'2.2.0','schema_version':'2.1.0','audit':'FORTY-ROUND-AUDIT-2026-08-07','files':files}
 out.write_text(json.dumps(payload,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')

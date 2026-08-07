@@ -11,7 +11,7 @@ final class SCHA_Evaluation {
         $table = SCHA_Database::table( 'evaluation_runs' );
         $wpdb->insert( $table, array(
             'public_id' => $public_id,
-            'dataset_version' => 'four-plan-builtin-2.1.0',
+            'dataset_version' => 'forty-round-builtin-2.2.0',
             'provider' => $provider->key(),
             'model' => sanitize_text_field( (string) SCHA_Settings::get( 'provider_model', '' ) ),
             'policy_version' => $policy['version'],

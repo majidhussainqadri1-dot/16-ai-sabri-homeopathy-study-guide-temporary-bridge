@@ -13,7 +13,11 @@ final class SCHA_Activator {
             wp_die( esc_html__( 'Sabri Classical Homeopathy AI requires WordPress 7.0 or later.', SCHA_TEXT_DOMAIN ) );
         }
 
-        SCHA_Database::install();
+        $schema = SCHA_Database::install();
+        if ( is_wp_error( $schema ) ) {
+            deactivate_plugins( plugin_basename( SCHA_PLUGIN_FILE ) );
+            wp_die( esc_html( $schema->get_error_message() ) );
+        }
         SCHA_Capabilities::install();
 
         if ( false === get_option( 'scha_settings', false ) ) {

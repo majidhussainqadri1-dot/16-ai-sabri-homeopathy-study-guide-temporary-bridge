@@ -8,7 +8,6 @@ final class SCHA_Crypto {
 
     public static function encrypt( ?string $plaintext, string $purpose = 'message' ): ?string {
         if ( null === $plaintext || '' === $plaintext ) return $plaintext;
-        if ( str_starts_with( $plaintext, self::PREFIX ) ) return $plaintext;
         $key = self::key( $purpose );
 
         if ( function_exists( 'sodium_crypto_aead_xchacha20poly1305_ietf_encrypt' ) ) {
@@ -49,7 +48,7 @@ final class SCHA_Crypto {
     }
 
     public static function is_encrypted( ?string $value ): bool {
-        return is_string( $value ) && str_starts_with( $value, self::PREFIX );
+        return is_string( $value ) && ( str_starts_with( $value, self::PREFIX . 'sodium:' ) || str_starts_with( $value, self::PREFIX . 'aesgcm:' ) );
     }
 
     private static function key( string $purpose ): string {

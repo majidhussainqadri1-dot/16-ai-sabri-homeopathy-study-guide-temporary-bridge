@@ -26,6 +26,7 @@ final class SCHA_Provider_Claude implements SCHA_Provider_Interface {
         $response = wp_safe_remote_post( 'https://api.anthropic.com/v1/messages', array(
             'timeout' => 45,
             'redirection' => 0,
+            'limit_response_size' => 1024 * 1024,
             'headers' => array( 'content-type' => 'application/json', 'x-api-key' => $this->api_key(), 'anthropic-version' => '2023-06-01' ),
             'body' => wp_json_encode( $payload ),
             'data_format' => 'body',

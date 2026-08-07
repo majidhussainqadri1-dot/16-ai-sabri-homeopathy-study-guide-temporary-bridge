@@ -1,0 +1,53 @@
+<?php
+$root = dirname( __DIR__ );
+$plugin = $root . '/16-sabri-classical-homeopathy-ai';
+$failures = array();
+$assert = static function ( bool $ok, string $label ) use ( &$failures ): void { if ( ! $ok ) $failures[] = $label; };
+$read = static fn( string $f ): string => file_get_contents( $plugin . '/' . $f ) ?: '';
+
+$account = $read( 'includes/class-scha-account-context.php' );
+$assert( str_contains( $account, "'approved'         => \$approved" ), 'R6 File00 approval not authoritative' );
+$assert( ! str_contains( $account, "current_user_can( 'manage_options' )" ), 'R6 local admin Founder bypass remains' );
+$crypto = $read( 'includes/class-scha-crypto.php' );
+$assert( ! str_contains( $crypto, "str_starts_with( \$plaintext, 'scha2:' )" ), 'R9 scha2 plaintext bypass remains' );
+$rest = $read( 'includes/class-scha-rest-controller.php' );
+$assert( str_contains( $rest, 'rest_post_dispatch' ) || str_contains( $read( 'includes/class-scha-plugin.php' ), 'rest_post_dispatch' ), 'R10 REST post-dispatch protection missing' );
+$assert( str_contains( $rest, 'private, no-store, no-cache' ), 'R10 REST no-store missing' );
+$js = $read( 'assets/js/public.js' );
+$assert( ! str_contains( $js, 'clientFingerprint' ) && ! str_contains( $js, 'X-SCHA-Client' ), 'R11 browser fingerprint remains' );
+$assert( str_contains( $js, 'try { storedPreference' ), 'R12 localStorage resilience missing' );
+$router = $read( 'includes/class-scha-router.php' );
+$assert( substr_count( $router, "'sources' === \$route && is_user_logged_in()" ) >= 3, 'R13 authenticated source route cache/index protection incomplete' );
+$assert( str_contains( $read( 'includes/class-scha-prompt-policy.php' ), 'recommend (?:a |the )?(?:remedy|medicine)' ), 'R14 expanded input safety missing' );
+$assert( str_contains( $read( 'includes/class-scha-output-policy.php' ), 'i recommend' ), 'R15 expanded output safety missing' );
+$assert( str_contains( $read( 'includes/class-scha-citation-validator.php' ), 'citation_coverage' ), 'R16 citation coverage missing' );
+$corpus = $read( 'includes/class-scha-corpus.php' );
+foreach ( array( 'access_class', 'source_url', 'language', 'title' ) as $field ) $assert( str_contains( $corpus, $field ), 'R17 corpus re-review field missing ' . $field );
+$retrieval = $read( 'includes/class-scha-retrieval.php' );
+$assert( str_contains( $retrieval, 'i.access_class' ) && str_contains( $retrieval, 'c.access_class' ), 'R18 dual ACL missing' );
+$assert( str_contains( $retrieval, '$per_source' ), 'R19 source diversity missing' );
+$assert( str_contains( $read( 'includes/providers/class-scha-provider-claude.php' ), 'limit_response_size' ) && str_contains( $read( 'includes/providers/class-scha-provider-http-json.php' ), 'limit_response_size' ), 'R21 provider response cap missing' );
+$rate = $read( 'includes/class-scha-rate-limiter.php' );
+$assert( str_contains( $rate, 'GET_LOCK' ) && ! str_contains( $rate, 'HTTP_USER_AGENT' ), 'R23 rate-limit lock/privacy missing' );
+$policy = $read( 'includes/class-scha-policy-repository.php' );
+$assert( str_contains( $policy, "CURRENT_VERSION = '2.2.0'" ) && str_contains( $policy, "START TRANSACTION" ) && str_contains( $policy, "COMMIT" ), 'R24 atomic policy activation missing' );
+$teacher = $read( 'includes/class-scha-ai-teacher.php' );
+$assert( str_contains( $teacher, 'recover_stale_generation_claims' ) && str_contains( $teacher, 'recover_stale_publication_claims' ), 'R26 stale worker recovery missing' );
+$assert( str_contains( $teacher, 'private static function publish_automatic' ) && ! str_contains( $teacher, 'bool $policy_auto' ), 'R27 automatic publication boundary missing' );
+$assert( str_contains( $teacher, "array( 'review_required', 'approved', 'publish_pending' )" ) && str_contains( $read( 'includes/class-scha-admin.php' ), 'Only a failed AI Teacher generation' ), 'R28 state-machine hardening missing' );
+$assert( str_contains( $teacher, 'publication_attempt' ) && str_contains( $teacher, '2 ** min' ), 'R29 publication backoff accounting missing' );
+$outbox = $read( 'includes/class-scha-outbox.php' );
+$assert( str_contains( $outbox, "status='processing' AND available_at <=" ) && str_contains( $outbox, 'processing lease' ), 'R31 outbox lease recovery missing' );
+$lifecycle = $read( 'includes/class-scha-provider-data-lifecycle.php' );
+$assert( str_contains( $lifecycle, 'confirmed' ) && str_contains( $lifecycle, 'pending' ) && str_contains( $lifecycle, 'failed' ), 'R32 provider deletion result contract missing' );
+$assert( str_contains( $read( 'includes/class-scha-privacy-tools.php' ), 'must_query' ) && str_contains( $read( 'includes/class-scha-retention.php' ), 'must_query' ), 'R33 DB transaction checks missing' );
+$assert( str_contains( $read( 'includes/class-scha-feedback.php' ), "m.role='assistant'" ), 'R34 assistant-only feedback guard missing' );
+$db = $read( 'includes/class-scha-database.php' );
+$migrator = $read( 'includes/class-scha-database-migrator.php' );
+$assert( str_contains( $db, 'schema_invariants_hold' ) && str_contains( $migrator, 'GET_LOCK' ), 'R38 migration lock/invariant verification missing' );
+$audit = $read( 'docs/FORTY-ROUND-AUDIT-2026-08-07.md' );
+$assert( str_contains( $audit, '**25**' ) && str_contains( $audit, '**15**' ), 'R39 forty-round count evidence missing' );
+$assert( str_contains( $read( 'docs/SBOM.spdx.json' ), '2.2.0' ), 'R39 SBOM release not 2.2.0' );
+
+if ( $failures ) { fwrite( STDERR, "FAIL REVIEW40\n- " . implode( "\n- ", $failures ) . "\n" ); exit( 1 ); }
+echo "PASS: forty-round corrective regression contracts\n";
