@@ -1,50 +1,10 @@
-name: Apply File 16 Review40 Overlay
+name: File 16 Review40 Overlay Disabled
 
 on:
-  push:
-    branches: ['audit/file16-review40-20260807']
-
-permissions:
-  contents: write
+  workflow_dispatch:
 
 jobs:
-  apply:
-    if: github.actor != 'github-actions[bot]'
+  disabled:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: audit/file16-review40-20260807
-          fetch-depth: 0
-      - name: Reconstruct reviewed source
-        shell: bash
-        run: |
-          set -euo pipefail
-          cat .review40-payload/part-* | tr -d '\n' | base64 -d > /tmp/review40-overlay.tar.gz
-          echo '9b16d393bc8710d2d34f39efe50eba2ae7edf42a9d4d70ef06d760b6824e4584  /tmp/review40-overlay.tar.gz' | sha256sum -c -
-          tar -xzf /tmp/review40-overlay.tar.gz -C .
-          rm -rf .review40-payload
-          chmod +x scripts/*.sh
-          git checkout HEAD -- .github/workflows/ci.yml .github/workflows/apply-review40.yml
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Verify corrected source
-        run: |
-          set -euo pipefail
-          bash scripts/verify.sh
-          SOURCE_DATE_EPOCH=1786075200 bash scripts/build.sh
-          unzip -t dist/16-sabri-classical-homeopathy-ai-2.2.0.zip
-      - name: Commit corrected source
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git reset -- dist || true
-          git commit -m 'File 16 forty-round corrective review release 2.2.0'
-          git push origin HEAD:audit/file16-review40-20260807
+      - run: echo 'Review40 source overlay has already been applied and verified.'
