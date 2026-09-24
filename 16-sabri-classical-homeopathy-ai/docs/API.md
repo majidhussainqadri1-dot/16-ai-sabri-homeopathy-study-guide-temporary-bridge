@@ -21,3 +21,5 @@ Authenticated requests require `X-WP-Nonce`; guest demo requests require `X-SCHA
 - `sabri_search_provider_documents_v1` — File 26 public source projection.
 - `sabri_institutional_profiles_v1` — nonhuman AI Teacher profile.
 - `sabri_module_registry_v1` — four-plan manifest.
+- `sabri_file16_register_grounded_profile_context_provider` — accepts File 03's public-only nonrecursive professional-work source provider.
+- `sabri_file16_grounded_profile_ask_v1` — returns a fresh, subject-bound, source-cited `public_professional_work` claim for File 03; no diagnosis/prescription/dose/emergency authority.
