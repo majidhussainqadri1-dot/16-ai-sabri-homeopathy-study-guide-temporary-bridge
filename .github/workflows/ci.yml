@@ -24,24 +24,24 @@ jobs:
       - name: Build twice and compare
         run: |
           SOURCE_DATE_EPOCH=1786075200 bash scripts/build.sh
-          cp dist/16-sabri-classical-homeopathy-ai-2.2.0.zip /tmp/first.zip
+          cp dist/16-sabri-classical-homeopathy-ai-2.2.1.zip /tmp/first.zip
           SOURCE_DATE_EPOCH=1786075200 bash scripts/build.sh
-          cmp /tmp/first.zip dist/16-sabri-classical-homeopathy-ai-2.2.0.zip
+          cmp /tmp/first.zip dist/16-sabri-classical-homeopathy-ai-2.2.1.zip
       - name: Clean extract retest
         run: |
           mkdir /tmp/scha-clean
-          unzip -q dist/16-sabri-classical-homeopathy-ai-2.2.0.zip -d /tmp/scha-clean
+          unzip -q dist/16-sabri-classical-homeopathy-ai-2.2.1.zip -d /tmp/scha-clean
           find /tmp/scha-clean -name '*.php' -print0 | xargs -0 -n1 php -l >/dev/null
           node --check /tmp/scha-clean/16-sabri-classical-homeopathy-ai/assets/js/public.js
           node --check /tmp/scha-clean/16-sabri-classical-homeopathy-ai/assets/js/admin.js
           test -f /tmp/scha-clean/16-sabri-classical-homeopathy-ai/docs/FORTY-ROUND-AUDIT-2026-08-07.md
       - name: Archive integrity
-        run: unzip -t dist/16-sabri-classical-homeopathy-ai-2.2.0.zip
+        run: unzip -t dist/16-sabri-classical-homeopathy-ai-2.2.1.zip
       - name: Upload package evidence
         uses: actions/upload-artifact@v4
         with:
-          name: file-16-2.2.0-package
+          name: file-16-2.2.1-package
           path: |
-            dist/16-sabri-classical-homeopathy-ai-2.2.0.zip
-            dist/16-sabri-classical-homeopathy-ai-2.2.0.zip.sha256
+            dist/16-sabri-classical-homeopathy-ai-2.2.1.zip
+            dist/16-sabri-classical-homeopathy-ai-2.2.1.zip.sha256
             dist/manifest.json
