@@ -8,9 +8,9 @@ final class SCHA_Usage_Ledger {
         $table = SCHA_Database::table( 'usage' );
         $idempotency = sanitize_text_field( (string) ( $data['idempotency_key'] ?? '' ) );
         $session_id = absint( $data['session_id'] ?? 0 );
-        $teacher_record = str_starts_with( $idempotency, 'teacher:' );
-        if ( '' === $idempotency || ( 0 === $session_id && ! $teacher_record ) ) {
-            return new WP_Error( 'scha_usage_invalid', 'Usage record requires a session or a governed teacher idempotency key.' );
+        $stateless_governed_record = str_starts_with( $idempotency, 'teacher:' ) || str_starts_with( $idempotency, 'profile-work:' );
+        if ( '' === $idempotency || ( 0 === $session_id && ! $stateless_governed_record ) ) {
+            return new WP_Error( 'scha_usage_invalid', 'Usage record requires a session or an approved governed stateless idempotency key.' );
         }
 
         $existing = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $table WHERE session_id=%d AND idempotency_key=%s", $session_id, $idempotency ) );

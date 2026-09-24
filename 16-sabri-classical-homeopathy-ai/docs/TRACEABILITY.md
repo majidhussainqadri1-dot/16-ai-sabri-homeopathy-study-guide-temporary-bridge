@@ -1,4 +1,4 @@
-# File 16 Requirements Traceability — Release 2.2.0
+# File 16 Requirements Traceability — Release 2.2.1
 
 | Requirement | Implementation evidence | Verification |
 |---|---|---|
@@ -41,3 +41,4 @@
 - **AI Teacher / Claude / four daily posts:** `SCHA_AI_Teacher`, Claude provider, scheduler, admin review and File 21/22 contracts.
 - **Top-20 AI capability families:** `SCHA_Assistant_Modes`, File 26 explainable projection, accessibility/low-bandwidth controls.
 - **Canonical ownership:** no duplicate publication, search, notification, identity or shell backend.
+- **File 03 grounded professional-work AI:** File 03 supplies a nonrecursive public-only source bundle; File 16 owns AI execution through `sabri_file16_grounded_profile_ask_v1`, with entitlement/rate/budget, prompt/output safety, source freshness/subject binding, same-origin citations and usage evidence.

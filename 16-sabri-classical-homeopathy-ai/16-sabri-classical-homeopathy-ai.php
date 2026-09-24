@@ -3,7 +3,7 @@
  * Plugin Name: Sabri Classical Homeopathy AI
  * Plugin URI: https://sabrihomeopathy.com/ai
  * Description: Governed, source-linked educational AI and institutional AI Teacher for the Sabri Social Homeopathy Platform.
- * Version: 2.2.0
+ * Version: 2.2.1
  * Requires at least: 7.0
  * Requires PHP: 8.3
  * Author: Dr. Allamah Majid Hussain Sabri Muhaddith Mursheed
@@ -13,7 +13,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'SCHA_VERSION', '2.2.0' );
+define( 'SCHA_VERSION', '2.2.1' );
 define( 'SCHA_PLAN_VERSION', '1.0' );
 define( 'SCHA_PLUGIN_FILE', __FILE__ );
 define( 'SCHA_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );

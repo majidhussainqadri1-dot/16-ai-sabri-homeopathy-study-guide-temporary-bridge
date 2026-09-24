@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.2.1 — 2026-09-24
+
+- Added the exact `sabri_file16_grounded_profile_ask_v1` contract consumed by File 03 FUT-08.
+- Added registration for File 03's nonrecursive, public-only professional-work grounding provider.
+- Revalidates current authenticated entitlement, fair-use rate limits, external-provider budget, context freshness/subject binding and same-origin source URLs.
+- Runs both prompt/output clinical-safety gates and citation validation before returning a grounded claim.
+- Persists governed stateless profile-work usage without creating a profile, publication, verification or clinical source of truth.
+- Repository candidate only; staging/live status is not implied.
+
+
 ## 2.2.0 — 2026-08-07
 
 - Forty-round post-correction audit release with immediate defect repair and fresh retest after every defect-bearing round.
