@@ -12,5 +12,5 @@ $missing = array_filter( $required, static fn( string $f ): bool => ! is_file( $
 if ( $missing ) { fwrite( STDERR, 'Missing: ' . implode( ', ', $missing ) . "\n" ); exit( 1 ); }
 $main = file_get_contents( $plugin . '/16-sabri-classical-homeopathy-ai.php' ) ?: '';
 $readme = file_get_contents( $plugin . '/readme.txt' ) ?: '';
-if ( ! str_contains( $main, 'Version: 2.2.0' ) || ! str_contains( $readme, 'Stable tag: 2.2.0' ) ) { fwrite( STDERR, "Version contract mismatch\n" ); exit( 1 ); }
+if ( ! str_contains( $main, 'Version: 2.2.1' ) || ! str_contains( $readme, 'Stable tag: 2.2.1' ) ) { fwrite( STDERR, "Version contract mismatch\n" ); exit( 1 ); }
 echo "PASS: package structure/version\n";
