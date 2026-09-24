@@ -9,7 +9,7 @@ $iterator = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $plug
 foreach ( $iterator as $file ) if ( $file->isFile() && in_array( strtolower( $file->getExtension() ), array( 'php', 'js', 'css' ), true ) ) $all .= "\n" . file_get_contents( $file->getPathname() );
 
 $main = $read( '16-sabri-classical-homeopathy-ai.php' );
-$assert( str_contains( $main, 'Version: 2.2.0' ), 'release version not 2.2.0' );
+$assert( str_contains( $main, 'Version: 2.2.1' ), 'release version not 2.2.1' );
 $assert( str_contains( $main, 'Requires at least: 7.0' ) && str_contains( $main, 'Requires PHP: 8.3' ), 'platform baseline missing' );
 $assert( str_contains( $read( 'includes/class-scha-entitlements.php' ), 'single-free-tier' ), 'single free tier missing' );
 $assert( ! preg_match( '/PKR\s*400|separate AI add-on|ai-addon/iu', $all ), 'superseded paid access language remains in executable/UI code' );
@@ -38,6 +38,14 @@ $assert( str_contains( $read( 'includes/class-scha-usage-ledger.php' ), 'session
 $assert( str_contains( $read( 'includes/class-scha-public.php' ), 'sabri_file20_context_controls_markup_v1' ), 'File 20 Back/Home owner contract missing' );
 $assert( str_contains( $read( 'includes/class-scha-router.php' ), 'X-Robots-Tag' ) && str_contains( $read( 'includes/class-scha-router.php' ), 'no-store' ), 'private route search/cache protections missing' );
 $assert( str_contains( $read( 'includes/class-scha-integration.php' ), 'why_this_result' ) && str_contains( $read( 'includes/class-scha-integration.php' ), 'donor_bias' ), 'Top-20 discovery explanation/no-bias metadata missing' );
+$integration = $read( 'includes/class-scha-integration.php' );
+$assert( str_contains( $read( 'includes/class-scha-plugin.php' ), 'sabri_file16_register_grounded_profile_context_provider' ) && str_contains( $read( 'includes/class-scha-plugin.php' ), 'sabri_file16_grounded_profile_ask_v1' ), 'File 03 grounded-work registration hooks missing' );
+foreach ( array( 'public_professional_work', 'SCHA_Prompt_Policy::classify', 'SCHA_Output_Policy::validate', 'SCHA_Citation_Validator::validate', 'SCHA_Rate_Limiter::check', 'SCHA_Usage_Ledger::budget_check', 'address_hidden' ) as $needle ) {
+    if ( 'address_hidden' === $needle ) continue;
+    $assert( str_contains( $integration, $needle ), 'Grounded profile-work safety contract missing: ' . $needle );
+}
+$assert( str_contains( $integration, 'same_origin_url' ) && str_contains( $integration, 'current_profile_context' ), 'File 03 grounding must revalidate freshness/subject/URL origin' );
+$assert( str_contains( $read( 'includes/class-scha-usage-ledger.php' ), "profile-work:" ), 'Stateless profile-work usage must be auditable in the File 16 usage ledger' );
 $assert( str_contains( $read( 'templates/accessibility.php' ), 'low-bandwidth' ) && str_contains( $read( 'assets/css/public.css' ), 'prefers-reduced-data' ), 'accessibility/low-bandwidth evidence missing' );
 $trace = $read( 'docs/TRACEABILITY.md' );
 for ( $i = 1; $i <= 19; $i++ ) $assert( str_contains( $trace, sprintf( 'F16-FR-%03d', $i ) ), 'missing FR trace ' . $i );
