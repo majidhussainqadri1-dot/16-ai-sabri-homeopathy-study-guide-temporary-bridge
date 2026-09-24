@@ -42,6 +42,8 @@ final class SCHA_Plugin {
         add_filter( 'sabri_search_provider_documents_v1', array( 'SCHA_Integration', 'register_search_documents' ) );
         add_filter( 'sabri_institutional_profiles_v1', array( 'SCHA_AI_Teacher', 'institutional_profile' ) );
         add_filter( 'sabri_module_registry_v1', array( 'SCHA_Four_Plan_Compliance', 'manifest' ) );
+        add_action( 'sabri_file16_register_grounded_profile_context_provider', array( 'SCHA_Integration', 'register_grounded_profile_context_provider' ), 10, 2 );
+        add_filter( 'sabri_file16_grounded_profile_ask_v1', array( 'SCHA_Integration', 'grounded_profile_ask' ), 10, 6 );
         add_action( 'scha_source_retracted', array( 'SCHA_Corpus', 'handle_source_retracted' ), 10, 3 );
 
         SCHA_Scheduler::ensure_events();
