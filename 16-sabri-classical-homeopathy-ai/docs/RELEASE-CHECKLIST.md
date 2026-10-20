@@ -8,7 +8,7 @@
 - [x] Claude provider, four-slot AI Teacher, 30-day human review and canonical owner handoff.
 - [x] File 20/21/22/19/26 boundaries and events.
 - [x] RTL/accessibility/low-bandwidth/private route controls.
-- [x] Schema/migration/rollback/docs/tests/package/SBOM.
+- [x] Schema/migration/rollback/docs and regression tests exist in source; exact-head 2.2.2 ZIP/checksum require independent CI artifact verification.
 - [ ] Exact-head GitHub CI green.
 - [ ] Hostinger staging fresh install and 1.x upgrade.
 - [ ] Real roles/claims/corpus/providers/companion contracts.
