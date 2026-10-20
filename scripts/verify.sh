@@ -8,6 +8,7 @@ php "$ROOT/tests/run.php"
 php "$ROOT/tests/four-plan-compliance.php"
 php "$ROOT/tests/review40.php"
 php "$ROOT/tests/security-boundaries.php"
+php "$ROOT/tests/file00-current-claims.php"
 php "$ROOT/tests/forty-scope-regression.php"
 php "$ROOT/tests/package-contract.php"
 if grep -RInE 'BEGIN (RSA|OPENSSH|EC|DSA) PRIVATE KEY|AKIA[0-9A-Z]{16}|sk-ant-[A-Za-z0-9_-]{20,}' "$ROOT" --exclude-dir=dist; then
