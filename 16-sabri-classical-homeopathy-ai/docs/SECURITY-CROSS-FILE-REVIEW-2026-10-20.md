@@ -8,12 +8,9 @@
 
 ## Confirmed source defects and corrections (5)
 
-| F16-20261020-05 | High | Actual File 00 owns `smc_membership_assertions()` and current `smc_assertions_v1` modifiers, but File 16 only read `sabri_membership_claims_v2`/legacy aliases absent from inspected File 00/02 code. In normal integrations this can fail closed for every authenticated user. | File 16 now prefers the actual canonical File 00 owner assertions, replays File 00's current security/age modifiers, checks subject ID, provider contract version, `approved`, `eligible`, suspension, guardian and age uncertainty, and maps verified doctor/Founder via canonical evidence rather than WordPress role. | Ten executable `tests/file00-current-claims.php` scenarios run in exact-head CI; real live/staging adapter parity remains required. |
-
-## Earlier four fixes
-
 | ID | Severity | Root cause and evidence | Source correction | Verification |
 | --- | --- | --- | --- | --- |
+| F16-20261020-05 | High | File 00's actual contract is `smc_membership_assertions()` with `smc_assertions_v1` safety modifiers, whereas File 16 only read absent legacy aliases. Authenticated AI access could be incorrectly denied. | Prefer canonical File 00 assertions; check matching subject, version, eligibility, approval, age, guardian, status and verified role. | 10 live-contract-shaped mocked PHP scenarios pass; staging contract parity unverified. |
 | F16-20261020-01 | Critical | `SCHA_Session_Service::owned` compared guest owner_id 0 to unauthenticated user_id 0 and accepted a session even when `guest_ok` was false | Deny a guest-owned session unless its actual guest cookie binding passes (manager override is separate) | PHP cross-guest ownership negative/positive assertions |
 | F16-20261020-02 | High | AI Teacher retrieved `public,subscriber,doctor,founder` using artificial Founder entitlement before creating public educational posts | Only retrieve `public` corpus for public institutional posts | Source assertion on retrieval access class; staging with mixed-ACL corpus still needed |
 | F16-20261020-03 | High | Stale AI Teacher `publishing` workers recovered unconditionally to `publish_pending`, allowing cron to auto-publish a previously human-reviewed workflow without preserving its provenance | Return human-reviewed work to manual `approved`; all unreviewed abandoned publication to `review_required` | Source negative regression; staging interrupted-worker crash/replay still needed |
@@ -23,7 +20,7 @@
 The enforceable list and results live in `tests/forty-scope-regression.php`: (01) release entry, (02–03) 19 FR/10 NFR trace, (04–05) free/donor policy, (06–10) identity and REST/guest privacy, (11–20) encryption/source rights/clinical safety/citation/retrieval ACL, (21–25) provider/SSRF/rate/budget, (26–30) AI Teacher schedule/public corpus/human review/recovery/canonical publication, (31–35) File 22/20/19/26/03 integrations, (36–40) strict origin, RTL, noindex, migration and evidence status. All 40 must pass to consider this source-level contract gate green; the dynamic behavioral security suite is separate.
 
 ## Remaining release obstacles
-1. **Exact-head CI verification** on the branch/PR, including PHP 8.3, JS syntax, PHP behavioral regressions and 40 named checkpoints.
+1. **Exact-head CI** is green for current source candidate; repeat after any later source change. The CI test environment does not substitute for WordPress integration or staging.
 2. **Build parity**: tracked `dist/16-sabri-classical-homeopathy-ai-2.1.0.zip` (if present) or `2.2.1.zip` cannot carry these fixes. Use only an independently produced and checksummed `2.2.2` artifact.
 3. **Staging environment**: confirm actual installed plugin build, File 00 claims and schema/migrations, approved public/restricted corpus, File 03/19/20/21/22/26 owner contracts, provider credentials, failed/crashed workers, consent/erasure, browser/RTL/low bandwidth, load, backup restore and rollback.
 4. **Production gate**: Founder-authorized deployment, post-deploy smoke tests, exact artifact/checksum and DB migration parity; active version and live defects cannot be assumed from GitHub.
