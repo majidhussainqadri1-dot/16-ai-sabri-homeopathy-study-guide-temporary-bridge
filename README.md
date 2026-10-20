@@ -1,7 +1,7 @@
 # File 16 — Sabri Classical Homeopathy AI
 
 Canonical WordPress package: `16-sabri-classical-homeopathy-ai`  
-Corrective release: **2.1.0** / schema **2.1.0**
+Corrective source candidate: **2.2.2** / schema **2.1.0**
 
 This release implements the four-plan File 16 repository scope: one complete free tier with no donor advantage; source-linked role-aware AI sessions; approved corpus/retrieval/citations; provider/model abstraction including Claude and the temporary Custom GPT bridge; input/output clinical and privacy safety; encrypted session storage; retention/export/erasure/legal hold; evaluations/observability; and the governed institutional AI Homeopathy Teacher with four daily slots and human/canonical-owner publication gates.
 
