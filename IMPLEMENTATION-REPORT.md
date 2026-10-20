@@ -1,4 +1,4 @@
-# File 16 Implementation Report — 2026-08-07
+# File 16 Implementation Report — historical 2026-08-07, updated 2026-10-20
 
 Four review-and-correction rounds were performed against:
 
@@ -10,3 +10,7 @@ Four review-and-correction rounds were performed against:
 Release 2.1.0 corrects the superseded paid-access model, adds fail-closed current membership claims, guest HMAC authorization, encrypted session messages, output safety, legal hold, Claude provider, assistant modes, four-slot AI Teacher, 30-day mandatory review, canonical publication/search/shell contracts, accessibility/RTL/low-bandwidth controls, schema 2.1.0, four-plan tests and deterministic package evidence.
 
 See `16-sabri-classical-homeopathy-ai/docs/FOUR-PLAN-AUDIT-2026-08-07.md` for defects and corrections. External staging/live gates remain open until separately evidenced.
+
+
+## 2026-10-20 Candidate 2.2.2
+Four confirmed source defects were corrected: cross-guest session disclosure, private corpus retrieval for public AI Teacher, stale publication recovery bypassing manual review, and File 03 URL source-origin bypass. Forty named source-to-plan checkpoints and executable security tests were added. These changes are review candidates; old 2.2.1 ZIP remains stale. Staging/live, DB version and migration state are unverified.
