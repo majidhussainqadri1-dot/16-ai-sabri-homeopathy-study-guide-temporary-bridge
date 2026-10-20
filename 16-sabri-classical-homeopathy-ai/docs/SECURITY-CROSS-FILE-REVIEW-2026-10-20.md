@@ -6,7 +6,11 @@
 - Governing documents: consolidated central plans, File 16 dedicated master plan, and File 03/00/02/05/06/12/15/19/20/21/22/24/26 ownership and integration requirements. Related File 14/17/18 requirements were examined for nonduplication of data ownership, medical safety, and privacy. No independent File 14/17/18 backend is created.
 - Historical 2026-08-07 forty-round audit is **not** claimed as the new audit. Fresh `tests/forty-scope-regression.php` has exactly 40 named, independent source-to-plan static checkpoints. They are not 40 full integration/staging end-to-end cycles.
 
-## Confirmed source defects and corrections
+## Confirmed source defects and corrections (5)
+
+| F16-20261020-05 | High | Actual File 00 owns `smc_membership_assertions()` and current `smc_assertions_v1` modifiers, but File 16 only read `sabri_membership_claims_v2`/legacy aliases absent from inspected File 00/02 code. In normal integrations this can fail closed for every authenticated user. | File 16 now prefers the actual canonical File 00 owner assertions, replays File 00's current security/age modifiers, checks subject ID, provider contract version, `approved`, `eligible`, suspension, guardian and age uncertainty, and maps verified doctor/Founder via canonical evidence rather than WordPress role. | Ten executable `tests/file00-current-claims.php` scenarios run in exact-head CI; real live/staging adapter parity remains required. |
+
+## Earlier four fixes
 
 | ID | Severity | Root cause and evidence | Source correction | Verification |
 | --- | --- | --- | --- | --- |
