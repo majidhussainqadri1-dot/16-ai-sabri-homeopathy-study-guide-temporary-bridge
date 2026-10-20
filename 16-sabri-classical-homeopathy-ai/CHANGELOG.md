@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.2.2 — 2026-10-20
+
+- Integrated actual File 00 `smc_membership_assertions()` plus current `smc_assertions_v1` security/age assertions, eliminating reliance on unimplemented membership filter names; preserved fail-closed age/guardian/eligibility and typed provider roles.
+- Fixed guest-session IDOR where owner_id=0 matched the unauthenticated user despite a missing/mismatched guest cookie.
+- Required public-only source rights in AI Teacher generation; formerly subscriber/doctor/founder data were eligible.
+- Made stale AI Teacher publication claims fail closed: human-approved drafts return to approved; unreviewed drafts return to review_required, never auto-publish.
+- Required exact source URL scheme/host/port and no URL userinfo for File 03 source-linked public professional-work AI.
+- Added targeted executable PHP behavior checks and 40 named cross-file source/plan regression gates; source changes remain staging/live unverified.
+
+
 ## 2.2.1 — 2026-09-24
 
 - Added the exact `sabri_file16_grounded_profile_ask_v1` contract consumed by File 03 FUT-08.

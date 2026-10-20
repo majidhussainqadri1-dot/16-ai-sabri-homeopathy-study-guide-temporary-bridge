@@ -219,9 +219,15 @@ final class SCHA_Integration {
         $home = wp_parse_url( home_url( '/' ) );
         if ( ! is_array( $parts ) || ! is_array( $home ) || empty( $parts['host'] ) || empty( $home['host'] ) ) return false;
         $scheme = strtolower( (string) ( $parts['scheme'] ?? '' ) );
+        $home_scheme = strtolower( (string) ( $home['scheme'] ?? '' ) );
+        $port = isset( $parts['port'] ) ? (int) $parts['port'] : ( 'https' === $scheme ? 443 : 80 );
+        $home_port = isset( $home['port'] ) ? (int) $home['port'] : ( 'https' === $home_scheme ? 443 : 80 );
         return in_array( $scheme, array( 'http', 'https' ), true )
+            && $scheme === $home_scheme
+            && $port === $home_port
             && 0 === strcasecmp( (string) $parts['host'], (string) $home['host'] )
-            && ! isset( $parts['user'], $parts['pass'] );
+            && ! isset( $parts['user'] )
+            && ! isset( $parts['pass'] );
     }
 
     public static function register_routes( array $routes ): array {

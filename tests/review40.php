@@ -47,7 +47,7 @@ $migrator = $read( 'includes/class-scha-database-migrator.php' );
 $assert( str_contains( $db, 'schema_invariants_hold' ) && str_contains( $migrator, 'GET_LOCK' ), 'R38 migration lock/invariant verification missing' );
 $audit = $read( 'docs/FORTY-ROUND-AUDIT-2026-08-07.md' );
 $assert( str_contains( $audit, '**25**' ) && str_contains( $audit, '**15**' ), 'R39 forty-round count evidence missing' );
-$assert( str_contains( $read( 'docs/SBOM.spdx.json' ), '2.2.0' ), 'R39 SBOM release not 2.2.0' );
+$assert( str_contains( $read( 'docs/SBOM.spdx.json' ), '2.2.2' ), 'R39 SBOM release not 2.2.2' );
 
 if ( $failures ) { fwrite( STDERR, "FAIL REVIEW40\n- " . implode( "\n- ", $failures ) . "\n" ); exit( 1 ); }
 echo "PASS: forty-round corrective regression contracts\n";

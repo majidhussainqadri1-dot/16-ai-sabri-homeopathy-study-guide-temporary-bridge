@@ -9,7 +9,7 @@ $iterator = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $plug
 foreach ( $iterator as $file ) if ( $file->isFile() && in_array( strtolower( $file->getExtension() ), array( 'php', 'js', 'css' ), true ) ) $all .= "\n" . file_get_contents( $file->getPathname() );
 
 $main = $read( '16-sabri-classical-homeopathy-ai.php' );
-$assert( str_contains( $main, 'Version: 2.2.1' ), 'release version not 2.2.1' );
+$assert( str_contains( $main, 'Version: 2.2.2' ), 'release version not 2.2.2' );
 $assert( str_contains( $main, 'Requires at least: 7.0' ) && str_contains( $main, 'Requires PHP: 8.3' ), 'platform baseline missing' );
 $assert( str_contains( $read( 'includes/class-scha-entitlements.php' ), 'single-free-tier' ), 'single free tier missing' );
 $assert( ! preg_match( '/PKR\s*400|separate AI add-on|ai-addon/iu', $all ), 'superseded paid access language remains in executable/UI code' );
