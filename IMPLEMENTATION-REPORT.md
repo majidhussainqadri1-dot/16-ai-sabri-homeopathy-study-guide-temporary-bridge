@@ -13,4 +13,4 @@ See `16-sabri-classical-homeopathy-ai/docs/FOUR-PLAN-AUDIT-2026-08-07.md` for de
 
 
 ## 2026-10-20 Candidate 2.2.2
-Four confirmed source defects were corrected: cross-guest session disclosure, private corpus retrieval for public AI Teacher, stale publication recovery bypassing manual review, and File 03 URL source-origin bypass. Forty named source-to-plan checkpoints and executable security tests were added. These changes are review candidates; old 2.2.1 ZIP remains stale. Staging/live, DB version and migration state are unverified.
+Five source defects were corrected: canonical File 00 membership claim mismatch, plus cross-guest session disclosure, private corpus retrieval for public AI Teacher, stale publication recovery bypassing manual review, and File 03 URL source-origin bypass. Forty named source-to-plan checkpoints and executable security tests were added. These changes are review candidates; old 2.2.1 ZIP remains stale. Staging/live, DB version and migration state are unverified.
