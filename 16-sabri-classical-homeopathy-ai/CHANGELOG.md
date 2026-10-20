@@ -2,6 +2,7 @@
 
 ## 2.2.2 — 2026-10-20
 
+- Integrated actual File 00 `smc_membership_assertions()` plus current `smc_assertions_v1` security/age assertions, eliminating reliance on unimplemented membership filter names; preserved fail-closed age/guardian/eligibility and typed provider roles.
 - Fixed guest-session IDOR where owner_id=0 matched the unauthenticated user despite a missing/mismatched guest cookie.
 - Required public-only source rights in AI Teacher generation; formerly subscriber/doctor/founder data were eligible.
 - Made stale AI Teacher publication claims fail closed: human-approved drafts return to approved; unreviewed drafts return to review_required, never auto-publish.
