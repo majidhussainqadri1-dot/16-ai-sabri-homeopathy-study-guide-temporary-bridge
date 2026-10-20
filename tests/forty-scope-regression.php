@@ -41,7 +41,7 @@ $checks = array(
     array( 'RTL presentation', 'assets/css/public.css', 'direction' ),
     array( 'Private route noindex', 'includes/class-scha-router.php', 'X-Robots-Tag' ),
     array( 'Schema migration serialization', 'includes/class-scha-database-migrator.php', 'GET_LOCK' ),
-    array( 'Release evidence separation', 'docs/RELEASE-CHECKLIST.md', 'Staging' ),
+    array( 'Release evidence separation', 'docs/RELEASE-CHECKLIST.md', 'staging' ),
 );
 $failures = array();
 foreach ( $checks as $index => $check ) {
