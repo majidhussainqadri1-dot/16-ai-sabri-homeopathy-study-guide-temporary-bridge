@@ -18,7 +18,8 @@ function wp_json_encode( mixed $value, int $flags = 0 ): string|false { return j
 function wp_generate_password( int $length = 12, bool $special_chars = true, bool $extra_special_chars = false ): string { return str_repeat( 'x', $length ); }
 
 final class SCHA_Settings {
-    public static function get( string $key, mixed $default = null ): mixed { return $default; }
+    public static array $overrides = array();
+    public static function get( string $key, mixed $default = null ): mixed { return array_key_exists( $key, self::$overrides ) ? self::$overrides[ $key ] : $default; }
 }
 final class SCHA_Policy_Repository {
     public static function active(): array { return array( 'version' => '2.2.0' ); }
