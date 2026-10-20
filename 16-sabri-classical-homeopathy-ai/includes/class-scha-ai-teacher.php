@@ -120,7 +120,8 @@ final class SCHA_AI_Teacher {
         $trace_id = SCHA_Observability::trace_id();
         $category = sanitize_key( (string) $row['category'] );
         $query = self::topic_query( $category, (string) $row['slot_date'] );
-        $entitlement = array( 'role' => 'founder', 'access_class' => array( 'public', 'subscriber', 'doctor', 'founder' ) );
+        // Public institutional posts must not retrieve private/subscriber/doctor/Founder sources.
+        $entitlement = array( 'role' => 'institutional-ai-teacher', 'access_class' => array( 'public' ) );
         $sources = SCHA_Retrieval::search( $query, $entitlement, 8 );
         if ( empty( $sources ) ) {
             return self::fail( $row, 'insufficient_evidence', __( 'No approved source set was available for this scheduled educational post.', SCHA_TEXT_DOMAIN ) );
@@ -368,7 +369,7 @@ final class SCHA_AI_Teacher {
         global $wpdb;
         $now = current_time( 'mysql', true );
         $stale = gmdate( 'Y-m-d H:i:s', time() - 20 * MINUTE_IN_SECONDS );
-        $recovered = $wpdb->query( $wpdb->prepare( "UPDATE $table SET status='publish_pending',error_code='publishing-worker-timeout',available_at=%s,updated_at=%s,version=version+1 WHERE status='publishing' AND updated_at < %s", $now, $now, $stale ) );
+        $recovered = $wpdb->query( $wpdb->prepare( "UPDATE $table SET status=CASE WHEN reviewed_by > 0 THEN 'approved' ELSE 'review_required' END,review_required=CASE WHEN reviewed_by > 0 THEN 0 ELSE 1 END,error_code='publishing-worker-timeout',available_at=%s,updated_at=%s,version=version+1 WHERE status='publishing' AND updated_at < %s", $now, $now, $stale ) );
         if ( $recovered > 0 ) SCHA_Observability::audit( 'ai_teacher_stale_publication_recovered', 'ai_teacher_queue', 'publication', array( 'count' => absint( $recovered ) ), 'queue-recovery' );
     }
 
