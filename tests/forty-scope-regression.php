@@ -2,7 +2,7 @@
 /* Forty named source-to-plan regression checkpoints; not a claim of 40 live/staging runs. */
 $root = dirname( __DIR__ ) . '/16-sabri-classical-homeopathy-ai/';
 $checks = array(
-    array( 'Release entry', '16-sabri-classical-homeopathy-ai.php', 'Version: 2.2.1' ),
+    array( 'Release entry', '16-sabri-classical-homeopathy-ai.php', 'Version: 2.2.2' ),
     array( 'FR trace', 'docs/TRACEABILITY.md', 'F16-FR-019' ),
     array( 'NFR trace', 'docs/TRACEABILITY.md', 'F16-NFR-10' ),
     array( 'Single free tier', 'includes/class-scha-entitlements.php', 'single-free-tier' ),
