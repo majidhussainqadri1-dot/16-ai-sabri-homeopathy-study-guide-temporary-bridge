@@ -14,4 +14,4 @@ bash scripts/verify.sh
 bash scripts/build.sh
 ```
 
-Repository completion does not equal Hostinger staging, live deployment or operational acceptance. See the release checklist and four-plan audit.
+The October 20, 2026 cross-file audit found and source-corrected five defects, including the real File 00 membership contract. Its 40 named source/plan static gates and 10 dynamic File 00 cases pass CI. See `16-sabri-classical-homeopathy-ai/docs/SECURITY-CROSS-FILE-REVIEW-2026-10-20.md`. The committed historic 2.2.1 ZIP is stale; use only a separately verified, checksummed 2.2.2 CI artifact for authorized staging. Repository completion does not equal Hostinger staging, live deployment or operational acceptance.
