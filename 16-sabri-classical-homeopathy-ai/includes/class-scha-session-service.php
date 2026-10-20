@@ -96,7 +96,7 @@ final class SCHA_Session_Service {
             $guest_ok = '' !== $stored_hash && '' !== $request_hash && hash_equals( $stored_hash, $request_hash );
         }
 
-        if ( ! $guest_ok && $owner_id !== $current && ! ( $allow_manager && SCHA_Capabilities::current_user_can_manage() ) ) {
+        if ( ! $guest_ok && ( 0 === $owner_id || $owner_id !== $current ) && ! ( $allow_manager && SCHA_Capabilities::current_user_can_manage() ) ) {
             return new WP_Error( 'scha_session_not_found', __( 'Session not found.', SCHA_TEXT_DOMAIN ), array( 'status' => 404 ) );
         }
         if ( in_array( (string) $session['status'], array( 'deleted', 'expired' ), true ) ) {
