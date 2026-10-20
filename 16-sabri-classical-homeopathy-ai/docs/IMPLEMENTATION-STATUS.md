@@ -1,6 +1,6 @@
 # Implementation Status
 
-**Coded source candidate:** 2.2.2 / schema 2.1.0; previously committed 2.2.1 ZIP predates this patch.  
+**Coded source candidate (five corrections):** 2.2.2 / schema 2.1.0; previously committed 2.2.1 ZIP predates this patch.  
 **Known repository-source blockers after four-round correction:** zero.  
 **CI:** only green when exact-head workflow result is available.  
 **Staging/live/operational:** not implied by repository completion.
