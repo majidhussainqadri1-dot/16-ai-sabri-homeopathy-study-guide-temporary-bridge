@@ -20,7 +20,7 @@ final class SCHA_Settings {
             'privacy_redaction'          => true,
             'raw_prompt_logging'         => false,
             'public_sources_page'        => true,
-            'green_primary'              => '#137a3d',
+            'green_primary'              => '#087A4E',
             'teacher_enabled'            => false,
             'teacher_provider'           => 'claude',
             'teacher_model'              => '',
@@ -62,7 +62,7 @@ final class SCHA_Settings {
         $out['privacy_redaction']   = true; // External-provider transport redaction is a non-disableable privacy invariant.
         $out['raw_prompt_logging']  = false;
         $out['public_sources_page'] = ! empty( $input['public_sources_page'] );
-        $out['green_primary']       = sanitize_hex_color( $input['green_primary'] ?? '#137a3d' ) ?: '#137a3d';
+        $out['green_primary']       = sanitize_hex_color( $input['green_primary'] ?? '#087A4E' ) ?: '#087A4E';
         $out['teacher_enabled']     = ! empty( $input['teacher_enabled'] );
         $out['teacher_provider']    = in_array( $input['teacher_provider'] ?? 'claude', array( 'claude', 'http_json', 'local' ), true ) ? $input['teacher_provider'] : 'claude';
         $out['teacher_model']       = sanitize_text_field( $input['teacher_model'] ?? '' );
