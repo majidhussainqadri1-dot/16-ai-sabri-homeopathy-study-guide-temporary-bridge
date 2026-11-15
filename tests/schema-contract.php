@@ -1,32 +1,40 @@
 <?php
 /**
- * Source/DDL contract, evaluated without live credentials or migrations.
- * Prevents the invalid schema invariant that broke fresh installs.
+ * Source/DDL schema contract; no live database access or migration changes.
+ * Every invariant must name a column physically created by its DDL.
  */
 $path = dirname( __DIR__ ) . '/16-sabri-classical-homeopathy-ai/includes/class-scha-database.php';
 $source = file_get_contents( $path ) ?: '';
-$ddl_start = strpos( $source, "self::table( 'outbox' )" );
-$ddl_end = strpos( $source, '$charset;', $ddl_start );
-$invariant_start = strpos( $source, 'public static function schema_invariants_hold' );
-if ( false === $ddl_start || false === $ddl_end || false === $invariant_start ) {
-    fwrite( STDERR, "FAIL: unable to locate outbox DDL or schema invariants\n" );
+$schema_start = strpos( $source, 'public static function schema_invariants_hold' );
+if ( false === $schema_start ) {
+    fwrite( STDERR, "FAIL: schema invariant function missing\n" );
     exit( 1 );
 }
-$ddl = substr( $source, $ddl_start, $ddl_end - $ddl_start );
-$invariants = substr( $source, $invariant_start );
-if ( ! preg_match( "/'outbox'\s*=>\s*array\((.*?)\)/s", $invariants, $found ) ) {
-    fwrite( STDERR, "FAIL: outbox invariant missing\n" );
-    exit( 1 );
-}
-preg_match_all( "/'([a-z_]+)'/", $found[1], $columns );
+$invariants = substr( $source, $schema_start );
+preg_match_all( "/'([a-z_]+)'\s*=>\s*array\(([^)]*)\)/s", $invariants, $required, PREG_SET_ORDER );
 $failures = array();
-foreach ( $columns[1] as $column ) {
-    if ( ! preg_match( '/^\s*' . preg_quote( $column, '/' ) . '\s+[a-z]+\b/im', $ddl ) ) {
-        $failures[] = "outbox.$column is required but not created";
+if ( count( $required ) < 7 ) $failures[] = 'schema invariant coverage unexpectedly decreased';
+$total = 0;
+foreach ( $required as $entry ) {
+    $table = $entry[1];
+    $marker = "self::table( '$table' )";
+    $ddl_start = strpos( $source, $marker );
+    $ddl_end = false !== $ddl_start ? strpos( $source, '$charset;', $ddl_start ) : false;
+    if ( false === $ddl_start || false === $ddl_end || $ddl_end < $ddl_start ) {
+        $failures[] = "$table DDL missing";
+        continue;
+    }
+    $ddl = substr( $source, $ddl_start, $ddl_end - $ddl_start );
+    preg_match_all( "/'([a-z_]+)'/", $entry[2], $columns );
+    foreach ( $columns[1] as $column ) {
+        ++$total;
+        if ( ! preg_match( '/^\s*' . preg_quote( $column, '/' ) . '\s+[a-z]+\b/im', $ddl ) ) {
+            $failures[] = "$table.$column required but not created";
+        }
     }
 }
 if ( $failures ) {
-    fwrite( STDERR, "FAIL: " . implode( '; ', $failures ) . "\n" );
+    fwrite( STDERR, "FAIL schema DDL/required columns:\n" . implode( "\n", $failures ) . "\n" );
     exit( 1 );
 }
-echo "PASS: outbox schema DDL/invariants agree\n";
+echo "PASS: " . count( $required ) . " table invariants and $total required columns match source DDL\n";
