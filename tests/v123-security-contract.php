@@ -17,6 +17,11 @@ $cases = array(
     'Corpus transaction and rollback' => array( 'includes/class-scha-corpus.php', "\$wpdb->query( 'ROLLBACK' )" ),
 );
 $failures = array();
+$styles = $read( 'assets/css/public.css' );
+if ( ! str_contains( $styles, '--sabri-visual-primary' ) || str_contains( $styles, '--sabri-brand-primary' ) ) {
+    $failures[] = 'File 25 canonical visual token contract';
+}
+
 foreach ( $cases as $label => $case ) {
     if ( ! str_contains( $read( $case[0] ), $case[1] ) ) $failures[] = $label;
 }
