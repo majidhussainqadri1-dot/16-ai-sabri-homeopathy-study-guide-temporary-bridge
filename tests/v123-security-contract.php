@@ -17,6 +17,13 @@ $cases = array(
     'Corpus transaction and rollback' => array( 'includes/class-scha-corpus.php', "\$wpdb->query( 'ROLLBACK' )" ),
 );
 $failures = array();
+$router = $read( 'includes/class-scha-router.php' );
+$router_headers = substr( $router, strpos( $router, 'public static function security_headers' ) );
+if ( ! str_contains( $router_headers, "header( 'Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0', true )" )
+    || ! str_contains( $router_headers, "header( 'Vary: Cookie', false )" ) ) {
+    $failures[] = 'AI view shared-cache privacy guard missing';
+}
+
 $json_provider = $read( 'includes/providers/class-scha-provider-http-json.php' );
 if ( ! str_contains( $json_provider, 'scha_http_json_pricing_unavailable' )
     || ! str_contains( $json_provider, 'scha_http_json_pricing_v1' )
