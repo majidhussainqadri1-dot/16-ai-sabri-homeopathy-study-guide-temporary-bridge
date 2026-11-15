@@ -120,7 +120,8 @@ final class SCHA_AI_Teacher {
         $trace_id = SCHA_Observability::trace_id();
         $category = sanitize_key( (string) $row['category'] );
         $query = self::topic_query( $category, (string) $row['slot_date'] );
-        $entitlement = array( 'role' => 'founder', 'access_class' => array( 'public', 'subscriber', 'doctor', 'founder' ) );
+        // Public AI Teacher posts must never retrieve founder, doctor or private corpus content.
+        $entitlement = array( 'role' => 'institutional-ai-teacher', 'access_class' => array( 'public' ) );
         $sources = SCHA_Retrieval::search( $query, $entitlement, 8 );
         if ( empty( $sources ) ) {
             return self::fail( $row, 'insufficient_evidence', __( 'No approved source set was available for this scheduled educational post.', SCHA_TEXT_DOMAIN ) );
