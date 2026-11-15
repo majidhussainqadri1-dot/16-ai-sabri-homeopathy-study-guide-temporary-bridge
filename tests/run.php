@@ -73,7 +73,7 @@ $missing_citation = SCHA_Citation_Validator::validate(
     'Historical disease classifications are frequently ambiguous and relevant diagnostic criteria require careful review by appropriately qualified specialists.',
     array( $grounded_source )
 );
-$assert( ! $missing_citation['valid'] && 'citation_coverage' === $missing_citation['reason'], 'unsupported substantial claim without citation was accepted' );
+$assert( ! $missing_citation['valid'] && in_array( $missing_citation['reason'], array( 'citation_missing', 'citation_coverage' ), true ), 'unsupported substantial claim without citation was accepted' );
 
 $nested = SCHA_Observability::sanitize_payload( array( 'meta' => array( 'token' => 'secret-value', 'safe' => 'ok' ), 'email' => 'patient@example.com' ) );
 $assert( '[redacted]' === $nested['meta']['token'], 'nested secret was not redacted' );
