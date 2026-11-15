@@ -285,23 +285,34 @@ final class SCHA_Corpus {
         $paragraphs = preg_split( '/\n{2,}/u', $text ) ?: array( $text );
         $chunks = array();
         $buffer = '';
+
         foreach ( $paragraphs as $paragraph ) {
             $paragraph = trim( preg_replace( '/\s+/u', ' ', $paragraph ) );
-            if ( '' === $paragraph ) {
-                continue;
+            if ( '' === $paragraph ) continue;
+
+            // Split long paragraphs as well as multi-paragraph documents.
+            // Unicode-aware boundaries preserve Urdu/Arabic character integrity.
+            if ( false === preg_match_all( '/.{1,1400}/us', $paragraph, $segments ) ) {
+                throw new RuntimeException( 'Corpus cannot be chunked safely as Unicode.' );
             }
-            $candidate = '' === $buffer ? $paragraph : $buffer . "\n\n" . $paragraph;
-            $length = function_exists( 'mb_strlen' ) ? mb_strlen( $candidate ) : strlen( $candidate );
-            if ( $length > 1400 && '' !== $buffer ) {
-                $chunks[] = $buffer;
-                $buffer = $paragraph;
-            } else {
-                $buffer = $candidate;
+            foreach ( $segments[0] as $piece ) {
+                $candidate = '' === $buffer ? $piece : $buffer . "\n\n" . $piece;
+                $length = function_exists( 'mb_strlen' ) ? mb_strlen( $candidate ) : strlen( $candidate );
+                if ( $length > 1400 && '' !== $buffer ) {
+                    $chunks[] = $buffer;
+                    $buffer = $piece;
+                    if ( count( $chunks ) > 10000 ) {
+                        throw new RuntimeException( 'Corpus is too large for one indexed source version.' );
+                    }
+                } else {
+                    $buffer = $candidate;
+                }
             }
         }
-        if ( '' !== $buffer ) {
-            $chunks[] = $buffer;
+        if ( '' !== $buffer ) $chunks[] = $buffer;
+        if ( count( $chunks ) > 10000 ) {
+            throw new RuntimeException( 'Corpus is too large for one indexed source version.' );
         }
-        return array_slice( $chunks, 0, 10000 );
+        return $chunks;
     }
 }
