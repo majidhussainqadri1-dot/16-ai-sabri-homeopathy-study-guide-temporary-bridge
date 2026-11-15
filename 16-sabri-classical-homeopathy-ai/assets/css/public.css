@@ -126,13 +126,13 @@
     --scha-action-text: #111B16;
     --scha-focus-ring: #91EBC0;
   }
-  .scha-hero { background: #17392B; }
-  .scha-message-user, .scha-message-user h3 { color: #111B16; }
-  .scha-warning { background: #392F17; color: #F1D48A; }
-  .scha-disclosure { background: #142536; color: #AFD8FF; }
-  .scha-safety-banner { background: #392F17; color: #F1D48A; border-color: #664808; }
-  .scha-button-danger { background: var(--scha-surface); color: #FFB5AC; border-color: #9B3B36; }
-  .scha-table-wrap th { color: #91EBC0; }
+  body:not(.sabri-visual-system) .scha-hero { background: #17392B; }
+  body:not(.sabri-visual-system) .scha-message-user, .scha-message-user h3 { color: #111B16; }
+  body:not(.sabri-visual-system) .scha-warning { background: #392F17; color: #F1D48A; }
+  body:not(.sabri-visual-system) .scha-disclosure { background: #142536; color: #AFD8FF; }
+  body:not(.sabri-visual-system) .scha-safety-banner { background: #392F17; color: #F1D48A; border-color: #664808; }
+  body:not(.sabri-visual-system) .scha-button-danger { background: var(--scha-surface); color: #FFB5AC; border-color: #9B3B36; }
+  body:not(.sabri-visual-system) .scha-table-wrap th { color: #91EBC0; }
 }
 @media (max-width: 320px) { .scha-shell, .scha-chat-shell { width: calc(100% - .5rem); } }
 
