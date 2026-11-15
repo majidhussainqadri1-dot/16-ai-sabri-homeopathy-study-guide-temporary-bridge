@@ -4,6 +4,7 @@
  * owner_id=0 must NOT authorize all anonymous users.
  */
 define( 'ABSPATH', __DIR__ . '/' );
+define( 'SCHA_TEXT_DOMAIN', 'sabri-classical-homeopathy-ai' );
 define( 'ARRAY_A', 'ARRAY_A' );
 
 class WP_Error {
