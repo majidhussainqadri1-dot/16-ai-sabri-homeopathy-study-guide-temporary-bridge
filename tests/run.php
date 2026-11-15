@@ -75,6 +75,19 @@ $missing_citation = SCHA_Citation_Validator::validate(
 );
 $assert( ! $missing_citation['valid'] && in_array( $missing_citation['reason'], array( 'citation_missing', 'citation_coverage' ), true ), 'unsupported substantial claim without citation was accepted' );
 
+require_once dirname( __DIR__ ) . '/16-sabri-classical-homeopathy-ai/includes/class-scha-corpus.php';
+$chunk_method = new ReflectionMethod( SCHA_Corpus::class, 'chunk_text' );
+$long_urdu_source = str_repeat( 'اصول علاج اور علمی حوالہ ', 450 );
+$bounded_chunks = $chunk_method->invoke( null, $long_urdu_source );
+$assert( count( $bounded_chunks ) > 1, 'long Urdu source was not split' );
+$source_normalized = trim( preg_replace( '/\s+/u', ' ', $long_urdu_source ) );
+$chunks_combined = str_replace( "\n\n", '', implode( '', $bounded_chunks ) );
+$assert( $chunks_combined === $source_normalized, 'source chunking silently lost text' );
+foreach ( $bounded_chunks as $chunk ) {
+    $length = function_exists( 'mb_strlen' ) ? mb_strlen( $chunk ) : strlen( $chunk );
+    $assert( $length <= 1400, 'source chunk exceeds required bound' );
+}
+
 $nested = SCHA_Observability::sanitize_payload( array( 'meta' => array( 'token' => 'secret-value', 'safe' => 'ok' ), 'email' => 'patient@example.com' ) );
 $assert( '[redacted]' === $nested['meta']['token'], 'nested secret was not redacted' );
 $assert( str_contains( $nested['email'], '[EMAIL_REDACTED]' ), 'nested PII was not redacted' );
