@@ -23,7 +23,7 @@ final class SCHA_Provider_Http_Json implements SCHA_Provider_Interface {
             if ( ! empty( $privacy['had_sensitive_data'] ) ) {
                 return new WP_Error( 'scha_sensitive_source_egress_denied', __( 'A source contains sensitive data and cannot be sent to an external provider.', SCHA_TEXT_DOMAIN ) );
             }
-            $source['content'] = $privacy['redacted'];
+            $source['content'] = (string) ( $source['content'] ?? '' );
             $contexts[] = array(
                 'label'    => $source['label'],
                 'title'    => $source['title'],
