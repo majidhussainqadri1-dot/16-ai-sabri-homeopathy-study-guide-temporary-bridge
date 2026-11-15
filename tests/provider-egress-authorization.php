@@ -43,4 +43,17 @@ if ( ! $result instanceof WP_Error || 'scha_sensitive_source_egress_denied' !== 
     fwrite( STDERR, "FAIL: sensitive source content not denied\n" );
     exit( 1 );
 }
-echo "PASS: Claude sensitive source metadata/content blocked before HTTP\n";
+SCHA_Settings::$overrides['monthly_cost_budget_micros'] = 1000;
+$source['title'] = 'Historical Repertory';
+$source['content'] = 'An approved historical education source without personal data.';
+$pricing_guard = $provider->generate( array(
+    'model' => 'fixture-model',
+    'prompt' => 'Explain the historical text.',
+    'sources' => array( $source ),
+) );
+if ( ! $pricing_guard instanceof WP_Error || 'scha_claude_pricing_unavailable' !== $pricing_guard->get_error_code() ) {
+    fwrite( STDERR, "FAIL: cost-capped provider call attempted without verified pricing\n" );
+    exit( 1 );
+}
+SCHA_Settings::$overrides = array();
+echo "PASS: Claude sensitive source metadata/content and unpriced capped requests blocked before HTTP\n";
