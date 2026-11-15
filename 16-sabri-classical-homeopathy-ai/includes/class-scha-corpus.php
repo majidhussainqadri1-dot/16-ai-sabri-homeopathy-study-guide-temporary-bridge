@@ -35,6 +35,14 @@ final class SCHA_Corpus {
         $language    = sanitize_text_field( $item['language'] ?? 'en' );
         $table       = SCHA_Database::table( 'corpus_items' );
         $existing    = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table WHERE owner_file=%s AND owner_item_id=%s AND item_version=%s", $owner_file, $owner_id, $version ), ARRAY_A );
+        // A cited canonical source version must be immutable: changing the text
+        // under an existing version silently invalidates prior quotations.
+        if ( $existing && ! hash_equals( (string) $existing['checksum'], $checksum ) ) {
+            return new WP_Error(
+                'scha_source_version_conflict',
+                __( 'This source version already exists with different content. Publish a new canonical version before re-indexing.', SCHA_TEXT_DOMAIN )
+            );
+        }
         $now         = current_time( 'mysql', true );
 
         $data = array(
