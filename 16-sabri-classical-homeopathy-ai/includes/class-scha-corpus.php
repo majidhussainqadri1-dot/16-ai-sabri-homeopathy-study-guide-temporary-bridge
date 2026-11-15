@@ -35,6 +35,14 @@ final class SCHA_Corpus {
         $language    = sanitize_text_field( $item['language'] ?? 'en' );
         $table       = SCHA_Database::table( 'corpus_items' );
         $existing    = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table WHERE owner_file=%s AND owner_item_id=%s AND item_version=%s", $owner_file, $owner_id, $version ), ARRAY_A );
+        // A cited canonical source version must be immutable: changing the text
+        // under an existing version silently invalidates prior quotations.
+        if ( $existing && ! hash_equals( (string) $existing['checksum'], $checksum ) ) {
+            return new WP_Error(
+                'scha_source_version_conflict',
+                __( 'This source version already exists with different content. Publish a new canonical version before re-indexing.', SCHA_TEXT_DOMAIN )
+            );
+        }
         $now         = current_time( 'mysql', true );
 
         $data = array(
@@ -131,12 +139,19 @@ final class SCHA_Corpus {
             return new WP_Error( 'scha_source_empty', 'The source has no indexable content.' );
         }
 
-        $wpdb->query( 'START TRANSACTION' );
+        if ( false === $wpdb->query( 'START TRANSACTION' ) ) {
+            return new WP_Error( 'scha_index_transaction_failed', __( 'Source approval could not start a database transaction.', SCHA_TEXT_DOMAIN ) );
+        }
         try {
-            $wpdb->delete( $chunks, array( 'item_id' => $item_id ), array( '%d' ) );
+            if ( false === $wpdb->delete( $chunks, array( 'item_id' => $item_id ), array( '%d' ) ) ) {
+                throw new RuntimeException( 'Source chunk replacement failed.' );
+            }
             $parts = self::chunk_text( (string) $item['source_content'] );
+            if ( empty( $parts ) ) {
+                throw new RuntimeException( 'No usable chunks were produced.' );
+            }
             foreach ( $parts as $index => $part ) {
-                $wpdb->insert(
+                $inserted = $wpdb->insert(
                     $chunks,
                     array(
                         'item_id'           => $item_id,
@@ -146,12 +161,15 @@ final class SCHA_Corpus {
                         'access_class'      => $item['access_class'],
                         'checksum'          => hash( 'sha256', $part ),
                         'embedding_version' => 'lexical-v1',
-                        'created_at'        => current_time( 'mysql', true ),
+                        'created_at'       => current_time( 'mysql', true ),
                     ),
                     array( '%d', '%d', '%s', '%d', '%s', '%s', '%s', '%s' )
                 );
+                if ( 1 !== $inserted ) {
+                    throw new RuntimeException( 'Source chunk insertion failed.' );
+                }
             }
-            $wpdb->update(
+            $updated = $wpdb->update(
                 $items,
                 array(
                     'status'       => 'approved',
@@ -162,13 +180,27 @@ final class SCHA_Corpus {
                 ),
                 array( 'id' => $item_id )
             );
-            $wpdb->query( 'COMMIT' );
+            if ( false === $updated ) {
+                throw new RuntimeException( 'Source approval state could not be written.' );
+            }
+            if ( ! SCHA_Outbox::publish(
+                'KnowledgeSourceUpdated',
+                'corpus_item',
+                (string) $item['public_id'],
+                array( 'source_id' => $item['public_id'], 'version' => $item['item_version'], 'status' => 'approved' ),
+                'source-updated-' . $item['public_id'] . '-' . $item['item_version']
+            ) ) {
+                throw new RuntimeException( 'Source update event could not be recorded.' );
+            }
+            if ( false === $wpdb->query( 'COMMIT' ) ) {
+                throw new RuntimeException( 'Source approval transaction could not be committed.' );
+            }
         } catch ( Throwable $e ) {
             $wpdb->query( 'ROLLBACK' );
-            return new WP_Error( 'scha_index_failed', 'Indexing failed.' );
+            SCHA_Observability::safe_error( $e, SCHA_Observability::trace_id() );
+            return new WP_Error( 'scha_index_failed', __( 'Source indexing failed safely; approval was not confirmed.', SCHA_TEXT_DOMAIN ) );
         }
 
-        SCHA_Outbox::publish( 'KnowledgeSourceUpdated', 'corpus_item', (string) $item['public_id'], array( 'source_id' => $item['public_id'], 'version' => $item['item_version'], 'status' => 'approved' ), 'source-updated-' . $item['public_id'] . '-' . $item['item_version'] );
         return true;
     }
 
@@ -253,23 +285,34 @@ final class SCHA_Corpus {
         $paragraphs = preg_split( '/\n{2,}/u', $text ) ?: array( $text );
         $chunks = array();
         $buffer = '';
+
         foreach ( $paragraphs as $paragraph ) {
             $paragraph = trim( preg_replace( '/\s+/u', ' ', $paragraph ) );
-            if ( '' === $paragraph ) {
-                continue;
+            if ( '' === $paragraph ) continue;
+
+            // Split long paragraphs as well as multi-paragraph documents.
+            // Unicode-aware boundaries preserve Urdu/Arabic character integrity.
+            if ( false === preg_match_all( '/.{1,1400}/us', $paragraph, $segments ) ) {
+                throw new RuntimeException( 'Corpus cannot be chunked safely as Unicode.' );
             }
-            $candidate = '' === $buffer ? $paragraph : $buffer . "\n\n" . $paragraph;
-            $length = function_exists( 'mb_strlen' ) ? mb_strlen( $candidate ) : strlen( $candidate );
-            if ( $length > 1400 && '' !== $buffer ) {
-                $chunks[] = $buffer;
-                $buffer = $paragraph;
-            } else {
-                $buffer = $candidate;
+            foreach ( $segments[0] as $piece ) {
+                $candidate = '' === $buffer ? $piece : $buffer . "\n\n" . $piece;
+                $length = function_exists( 'mb_strlen' ) ? mb_strlen( $candidate ) : strlen( $candidate );
+                if ( $length > 1400 && '' !== $buffer ) {
+                    $chunks[] = $buffer;
+                    $buffer = $piece;
+                    if ( count( $chunks ) > 10000 ) {
+                        throw new RuntimeException( 'Corpus is too large for one indexed source version.' );
+                    }
+                } else {
+                    $buffer = $candidate;
+                }
             }
         }
-        if ( '' !== $buffer ) {
-            $chunks[] = $buffer;
+        if ( '' !== $buffer ) $chunks[] = $buffer;
+        if ( count( $chunks ) > 10000 ) {
+            throw new RuntimeException( 'Corpus is too large for one indexed source version.' );
         }
-        return array_slice( $chunks, 0, 10000 );
+        return $chunks;
     }
 }

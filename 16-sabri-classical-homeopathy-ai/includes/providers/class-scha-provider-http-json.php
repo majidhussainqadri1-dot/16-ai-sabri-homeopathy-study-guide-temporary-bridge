@@ -17,8 +17,28 @@ final class SCHA_Provider_Http_Json implements SCHA_Provider_Interface {
             return new WP_Error( 'scha_provider_unavailable', __( 'The configured native AI provider is unavailable or not allowlisted.', SCHA_TEXT_DOMAIN ) );
         }
 
+        // Provider-supplied cost_micros alone is not trusted for enforcing
+        // safety budgets. Require a reviewed pricing contract before dispatch.
+        $model = sanitize_text_field( (string) SCHA_Settings::get( 'provider_model', '' ) );
+        $pricing = apply_filters( 'scha_http_json_pricing_v1', null, $model, $endpoint );
+        $price_known = is_array( $pricing )
+            && is_numeric( $pricing['input_micros_per_million'] ?? null )
+            && is_numeric( $pricing['output_micros_per_million'] ?? null )
+            && (float) $pricing['input_micros_per_million'] > 0
+            && (float) $pricing['output_micros_per_million'] > 0;
+        $money_cap_active = absint( SCHA_Settings::get( 'monthly_cost_budget_micros', 0 ) ) > 0
+            || absint( SCHA_Settings::get( 'teacher_daily_budget_micros', 0 ) ) > 0;
+        if ( $money_cap_active && ( '' === $model || ! $price_known ) ) {
+            return new WP_Error( 'scha_http_json_pricing_unavailable', __( 'Cost-limited external AI requests require a verified model and pricing contract.', SCHA_TEXT_DOMAIN ) );
+        }
+
         $contexts = array();
         foreach ( $request['sources'] ?? array() as $source ) {
+            $privacy = SCHA_Privacy::provider_text( (string) ( $source['title'] ?? '' ) . "\n" . (string) ( $source['location'] ?? '' ) . "\n" . (string) ( $source['content'] ?? '' ) );
+            if ( ! empty( $privacy['had_sensitive_data'] ) ) {
+                return new WP_Error( 'scha_sensitive_source_egress_denied', __( 'A source contains sensitive data and cannot be sent to an external provider.', SCHA_TEXT_DOMAIN ) );
+            }
+            $source['content'] = (string) ( $source['content'] ?? '' );
             $contexts[] = array(
                 'label'    => $source['label'],
                 'title'    => $source['title'],
@@ -83,7 +103,12 @@ final class SCHA_Provider_Http_Json implements SCHA_Provider_Interface {
             'response_id'   => sanitize_text_field( $decoded['id'] ?? wp_generate_uuid4() ),
             'input_tokens'  => absint( $decoded['usage']['input_tokens'] ?? SCHA_Usage_Ledger::estimate_tokens( (string) $request['prompt'] ) ),
             'output_tokens' => absint( $decoded['usage']['output_tokens'] ?? SCHA_Usage_Ledger::estimate_tokens( $answer ) ),
-            'cost_micros'   => absint( $decoded['usage']['cost_micros'] ?? 0 ),
+            'cost_micros'   => $price_known
+                ? absint( (int) ceil( (
+                    max( absint( $decoded['usage']['input_tokens'] ?? 0 ), 2 * SCHA_Usage_Ledger::estimate_tokens( wp_json_encode( $body ) ?: '' ) ) * (float) $pricing['input_micros_per_million']
+                    + max( absint( $decoded['usage']['output_tokens'] ?? 0 ), 2 * SCHA_Usage_Ledger::estimate_tokens( $answer ) ) * (float) $pricing['output_micros_per_million']
+                ) / 1000000 ) )
+                : absint( $decoded['usage']['cost_micros'] ?? 0 ),
             'disclosure'    => __( 'Generated through the configured allowlisted AI provider using approved source excerpts.', SCHA_TEXT_DOMAIN ),
         );
     }

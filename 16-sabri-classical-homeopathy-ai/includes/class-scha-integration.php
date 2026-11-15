@@ -192,6 +192,10 @@ final class SCHA_Integration {
             if ( '' === $content ) {
                 continue;
             }
+            // Even publicly linked portfolio text may include credentials/PII.
+            if ( SCHA_Privacy::inspect_and_redact( $content )['had_sensitive_data'] ) {
+                continue;
+            }
             $content = function_exists( 'mb_substr' ) ? mb_substr( $content, 0, 6000 ) : substr( $content, 0, 6000 );
             $sources[] = array(
                 'source_id'          => sanitize_text_field( (string) ( $source['source_id'] ?? '' ) ),

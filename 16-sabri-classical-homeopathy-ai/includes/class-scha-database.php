@@ -274,7 +274,7 @@ final class SCHA_Database {
             'corpus_items' => array( 'owner_file', 'owner_item_id', 'item_version', 'access_class', 'approved_use', 'rights_evidence_id', 'rights_reviewed_at', 'chunk_status' ),
             'chunks'       => array( 'item_id', 'chunk_index', 'access_class', 'checksum' ),
             'usage'        => array( 'user_id', 'session_id', 'request_hash', 'idempotency_key', 'cost_micros', 'period_key' ),
-            'outbox'       => array( 'event_name', 'event_version', 'payload', 'dedupe_key', 'status', 'available_at', 'attempts' ),
+            'outbox'       => array( 'event_name', 'event_version', 'payload_json', 'dedupe_key', 'status', 'available_at', 'attempts' ),
             'teacher_posts'=> array( 'schedule_key', 'slot_date', 'slot_time', 'status', 'review_required', 'attempts', 'available_at', 'version' ),
         );
         foreach ( $required as $name => $columns ) {

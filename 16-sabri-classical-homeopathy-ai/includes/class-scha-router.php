@@ -57,6 +57,10 @@ final class SCHA_Router {
     public static function security_headers(): void {
         $route = sanitize_key( (string) get_query_var( 'scha_route' ) );
         if ( ! $route ) return;
+        // Every File 16 view injects per-visitor nonce/guest-token/context data;
+        // public SEO pages may be indexed, but must not be shared-cached.
+        header( 'Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0', true );
+        header( 'Vary: Cookie', false );
         header( 'Referrer-Policy: strict-origin-when-cross-origin' );
         header( 'X-Content-Type-Options: nosniff' );
         header( 'Permissions-Policy: microphone=(), camera=(), geolocation=()' );

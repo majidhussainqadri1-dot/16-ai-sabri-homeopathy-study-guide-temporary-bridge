@@ -16,6 +16,20 @@ final class SCHA_Plugin {
         $this->booted = true;
 
         load_plugin_textdomain( SCHA_TEXT_DOMAIN, false, dirname( plugin_basename( SCHA_PLUGIN_FILE ) ) . '/languages' );
+        // A failed/deferred migration must not leave REST, schedulers or
+        // publishing handlers active against an incompatible database.
+        $migration = SCHA_Database_Migrator::maybe_upgrade();
+        if ( is_wp_error( $migration ) ) {
+            SCHA_Observability::safe_error( $migration->get_error_message(), SCHA_Observability::trace_id() );
+            add_action( 'admin_notices', static function (): void {
+                if ( ! current_user_can( 'manage_options' ) ) return;
+                echo '<div class="notice notice-error"><p>' .
+                    esc_html__( 'Sabri AI is safely disabled because its database schema could not be verified or upgraded. Check the migration log and restore readiness before retrying.', SCHA_TEXT_DOMAIN ) .
+                    '</p></div>';
+            } );
+            return;
+        }
+
 
         add_action( 'init', array( 'SCHA_Router', 'init' ) );
         add_action( 'rest_api_init', array( 'SCHA_REST_Controller', 'register_routes' ) );
@@ -47,7 +61,7 @@ final class SCHA_Plugin {
         add_action( 'scha_source_retracted', array( 'SCHA_Corpus', 'handle_source_retracted' ), 10, 3 );
 
         SCHA_Scheduler::ensure_events();
-        SCHA_Database_Migrator::maybe_upgrade();
+        // Database migration already verified before registering public handlers.
         SCHA_Policy_Repository::seed_default_policy();
     }
 }

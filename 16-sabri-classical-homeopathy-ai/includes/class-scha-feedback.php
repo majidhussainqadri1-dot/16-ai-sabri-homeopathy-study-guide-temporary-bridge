@@ -19,6 +19,8 @@ final class SCHA_Feedback {
             return new WP_Error( 'scha_feedback_invalid', __( 'Invalid feedback category.', SCHA_TEXT_DOMAIN ), array( 'status' => 400 ) );
         }
         $comment = trim( sanitize_textarea_field( $comment ) );
+        // Feedback can accidentally contain patient identifiers or provider secrets.
+        $comment = (string) SCHA_Privacy::inspect_and_redact( $comment )['redacted'];
         if ( function_exists( 'mb_strlen' ) && mb_strlen( $comment ) > 2000 ) {
             $comment = mb_substr( $comment, 0, 2000 );
         } elseif ( strlen( $comment ) > 2000 ) {
