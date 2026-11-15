@@ -131,12 +131,19 @@ final class SCHA_Corpus {
             return new WP_Error( 'scha_source_empty', 'The source has no indexable content.' );
         }
 
-        $wpdb->query( 'START TRANSACTION' );
+        if ( false === $wpdb->query( 'START TRANSACTION' ) ) {
+            return new WP_Error( 'scha_index_transaction_failed', __( 'Source approval could not start a database transaction.', SCHA_TEXT_DOMAIN ) );
+        }
         try {
-            $wpdb->delete( $chunks, array( 'item_id' => $item_id ), array( '%d' ) );
+            if ( false === $wpdb->delete( $chunks, array( 'item_id' => $item_id ), array( '%d' ) ) ) {
+                throw new RuntimeException( 'Source chunk replacement failed.' );
+            }
             $parts = self::chunk_text( (string) $item['source_content'] );
+            if ( empty( $parts ) ) {
+                throw new RuntimeException( 'No usable chunks were produced.' );
+            }
             foreach ( $parts as $index => $part ) {
-                $wpdb->insert(
+                $inserted = $wpdb->insert(
                     $chunks,
                     array(
                         'item_id'           => $item_id,
@@ -146,12 +153,15 @@ final class SCHA_Corpus {
                         'access_class'      => $item['access_class'],
                         'checksum'          => hash( 'sha256', $part ),
                         'embedding_version' => 'lexical-v1',
-                        'created_at'        => current_time( 'mysql', true ),
+                        'created_at'       => current_time( 'mysql', true ),
                     ),
                     array( '%d', '%d', '%s', '%d', '%s', '%s', '%s', '%s' )
                 );
+                if ( 1 !== $inserted ) {
+                    throw new RuntimeException( 'Source chunk insertion failed.' );
+                }
             }
-            $wpdb->update(
+            $updated = $wpdb->update(
                 $items,
                 array(
                     'status'       => 'approved',
@@ -162,13 +172,27 @@ final class SCHA_Corpus {
                 ),
                 array( 'id' => $item_id )
             );
-            $wpdb->query( 'COMMIT' );
+            if ( false === $updated ) {
+                throw new RuntimeException( 'Source approval state could not be written.' );
+            }
+            if ( ! SCHA_Outbox::publish(
+                'KnowledgeSourceUpdated',
+                'corpus_item',
+                (string) $item['public_id'],
+                array( 'source_id' => $item['public_id'], 'version' => $item['item_version'], 'status' => 'approved' ),
+                'source-updated-' . $item['public_id'] . '-' . $item['item_version']
+            ) ) {
+                throw new RuntimeException( 'Source update event could not be recorded.' );
+            }
+            if ( false === $wpdb->query( 'COMMIT' ) ) {
+                throw new RuntimeException( 'Source approval transaction could not be committed.' );
+            }
         } catch ( Throwable $e ) {
             $wpdb->query( 'ROLLBACK' );
-            return new WP_Error( 'scha_index_failed', 'Indexing failed.' );
+            SCHA_Observability::safe_error( $e, SCHA_Observability::trace_id() );
+            return new WP_Error( 'scha_index_failed', __( 'Source indexing failed safely; approval was not confirmed.', SCHA_TEXT_DOMAIN ) );
         }
 
-        SCHA_Outbox::publish( 'KnowledgeSourceUpdated', 'corpus_item', (string) $item['public_id'], array( 'source_id' => $item['public_id'], 'version' => $item['item_version'], 'status' => 'approved' ), 'source-updated-' . $item['public_id'] . '-' . $item['item_version'] );
         return true;
     }
 
