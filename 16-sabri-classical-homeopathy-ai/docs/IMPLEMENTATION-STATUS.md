@@ -9,3 +9,9 @@ Current release includes source-linked sessions, free-tier policy, live account 
 
 
 Repository-owned source is complete at release 2.2.1 after the File 03 grounded-work exact-contract correction; publication concurrency, corpus rights, privacy lifecycle, provider configuration and telemetry separation are frozen by regression tests.
+
+## V12.3 source audit (2026-11-15)
+
+The preceding "zero known repository blockers" statement describes the 2026-08 review scope, **not** current V12.3 acceptance. A subsequent source audit proved additional defects, including outbox schema mismatch, anonymous-guest ownership bypass, unauthorized AI Teacher source classes, sensitive corpus egress, transaction/write acknowledgement, canonical source version changes, and unbounded content chunks. Corrections were committed to `audit/file16-v123-source-hardening-20261115`; see `docs/V123-CORRECTION-REGISTER-2026-11-15.md`.
+
+**Remaining:** actual embedding/hybrid retrieval; semantic claim-level entailment; provider-response multilingual evaluation; load/chaos/browser/assistive-technology tests; exact staging and live version/DB/migration/parity proof. Do not label the full V12.3 scope completed.
