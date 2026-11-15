@@ -96,7 +96,11 @@ final class SCHA_Session_Service {
             $guest_ok = '' !== $stored_hash && '' !== $request_hash && hash_equals( $stored_hash, $request_hash );
         }
 
-        if ( ! $guest_ok && $owner_id !== $current && ! ( $allow_manager && SCHA_Capabilities::current_user_can_manage() ) ) {
+        // Guest records have owner_id=0, just like an anonymous request.
+        // Equality of those zeros is NOT authorization: require the bound cookie.
+        $same_logged_in_owner = $owner_id > 0 && $owner_id === $current;
+        $explicit_manager_access = $allow_manager && SCHA_Capabilities::current_user_can_manage();
+        if ( ! $guest_ok && ! $same_logged_in_owner && ! $explicit_manager_access ) {
             return new WP_Error( 'scha_session_not_found', __( 'Session not found.', SCHA_TEXT_DOMAIN ), array( 'status' => 404 ) );
         }
         if ( in_array( (string) $session['status'], array( 'deleted', 'expired' ), true ) ) {
