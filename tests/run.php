@@ -50,6 +50,31 @@ $coverage = SCHA_Citation_Validator::validate( str_repeat( 'First long substanti
 $assert( false === $coverage['valid'] && 'citation_coverage' === $coverage['reason'], 'citation coverage gap not rejected' );
 $assert( false === SCHA_Citation_Validator::validate( 'Bad marker [S3].', $sources )['valid'], 'out-of-range citation not rejected' );
 
+$grounded_source = array(
+    'source_id' => 'repertory-v1',
+    'title' => 'Historical Repertory',
+    'version' => '1',
+    'location' => 'chapter-2',
+    'url' => 'https://example.test/lesson',
+    'owner_file' => '05',
+    'content' => 'A repertory is a structured index of symptoms, and rubrics connect historical symptoms to materia medica references. This supports educational study rather than individual diagnosis.',
+);
+$grounded = SCHA_Citation_Validator::validate(
+    'A repertory is a structured index of symptoms, and its rubrics connect historical symptoms to materia medica references in educational study. [S1]',
+    array( $grounded_source )
+);
+$assert( $grounded['valid'], 'source-supported answer was rejected' );
+$unrelated = SCHA_Citation_Validator::validate(
+    'Orbital gravitational dynamics predict distant asteroid deflection trajectories by a laser-powered magnetic accelerator travelling through interplanetary space. [S1]',
+    array( $grounded_source )
+);
+$assert( ! $unrelated['valid'] && 'citation_content_mismatch' === $unrelated['reason'], 'fabricated source relationship was accepted' );
+$missing_citation = SCHA_Citation_Validator::validate(
+    'Historical disease classifications are frequently ambiguous and relevant diagnostic criteria require careful review by appropriately qualified specialists.',
+    array( $grounded_source )
+);
+$assert( ! $missing_citation['valid'] && 'citation_coverage' === $missing_citation['reason'], 'unsupported substantial claim without citation was accepted' );
+
 $nested = SCHA_Observability::sanitize_payload( array( 'meta' => array( 'token' => 'secret-value', 'safe' => 'ok' ), 'email' => 'patient@example.com' ) );
 $assert( '[redacted]' === $nested['meta']['token'], 'nested secret was not redacted' );
 $assert( str_contains( $nested['email'], '[EMAIL_REDACTED]' ), 'nested PII was not redacted' );
@@ -58,4 +83,4 @@ if ( $failures ) {
     fwrite( STDERR, "FAIL\n- " . implode( "\n- ", $failures ) . "\n" );
     exit( 1 );
 }
-echo 'PASS: ' . ( count( $cases ) * 2 + 19 ) . " unit/adversarial assertions\n";
+echo 'PASS: ' . ( count( $cases ) * 2 + 22 ) . " unit/adversarial assertions\n";
