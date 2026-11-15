@@ -1,16 +1,16 @@
 :root {
-  --scha-green: var(--sabri-brand-primary, #087A4E);
-  --scha-green-dark: #065C3B;
-  --scha-green-soft: #E7F5EE;
-  --scha-text: #15251E;
-  --scha-muted: #4A6155;
-  --scha-border: #D6E1DA;
-  --scha-bg: #F4F7F5;
-  --scha-danger: #9B3B36;
-  --scha-warning: #664808;
-  --scha-surface: #FFFFFF;
+  --scha-green: var(--sabri-visual-primary, #087A4E);
+  --scha-green-dark: var(--sabri-visual-primary-strong, #065C3B);
+  --scha-green-soft: var(--sabri-visual-primary-soft, #E7F5EE);
+  --scha-text: var(--sabri-visual-text, #15251E);
+  --scha-muted: var(--sabri-visual-muted, #4A6155);
+  --scha-border: var(--sabri-visual-border, #D6E1DA);
+  --scha-bg: var(--sabri-visual-page, #F4F7F5);
+  --scha-danger: var(--sabri-visual-danger, #9B3B36);
+  --scha-warning: var(--sabri-visual-warning, #664808);
+  --scha-surface: var(--sabri-visual-surface, #FFFFFF);
   --scha-action-text: #FFFFFF;
-  --scha-focus-ring: #065C3B;
+  --scha-focus-ring: var(--sabri-visual-focus, #065C3B);
   --scha-radius: 16px;
   --scha-shadow: 0 12px 34px rgba(17, 63, 35, .09);
 }
@@ -114,7 +114,7 @@
 .scha-message-content { font: 400 18px/1.85 "Noto Naskh Arabic", "Noto Sans Arabic", system-ui, sans-serif; }
 .scha-page :where(button, a, textarea, select):focus-visible { outline: 3px solid var(--scha-focus-ring); outline-offset: 3px; }
 @media (prefers-color-scheme: dark) {
-  .scha-page {
+  body:not(.sabri-visual-system) .scha-page {
     --scha-bg: #111B16;
     --scha-surface: #1A2922;
     --scha-text: #E7F5EE;
@@ -135,3 +135,14 @@
   .scha-table-wrap th { color: #91EBC0; }
 }
 @media (max-width: 320px) { .scha-shell, .scha-chat-shell { width: calc(100% - .5rem); } }
+
+/* File 25 controls explicitly chosen light/dark/system appearance. */
+body.sabri-visual-system.sabri-shell-theme-dark .scha-page,
+body.sabri-visual-system.sabri-shell-theme-system .scha-page {
+  --scha-bg: var(--sabri-visual-page);
+  --scha-surface: var(--sabri-visual-surface);
+  --scha-text: var(--sabri-visual-text);
+  --scha-muted: var(--sabri-visual-muted);
+  --scha-border: var(--sabri-visual-border);
+  --scha-focus-ring: var(--sabri-visual-focus);
+}
