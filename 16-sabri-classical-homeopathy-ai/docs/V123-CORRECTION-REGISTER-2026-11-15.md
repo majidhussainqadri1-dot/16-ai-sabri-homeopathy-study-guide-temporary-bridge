@@ -21,6 +21,20 @@ Scope: GitHub source, tests and reproducible CI package — **not** deployed/sta
 | 11 | Medium | Local CSS/settings defaults used an obsolete green value rather than V12.3 `#087A4E` | `assets/css/public.css`, `class-scha-settings.php` | Source review only; visual browser acceptance pending |
 | 12 | Medium | Root README described stale source release 2.1.0 even though plugin is 2.2.1 | `README.md` | Exact source-header alignment |
 
+## Second-pass corrections (after the initial twelve)
+
+| # | Severity | Additional verified source weakness | Correction and automated evidence |
+|---|---|---|---|
+| 13 | High | Cost-limited Claude and HTTP JSON calls could implicitly trust an absent/zero provider price, invalidating operator monetary budgets | Both adapters require version-reviewed pricing contracts before capped requests; offline Claude pricing regression validates a known-cost fixture |
+| 14 | High | Public File 16 pages inject per-user session/nonce/guest metadata but lacked a universal private no-store cache policy | All File 16 routes set Cache-Control private/no-store and Vary: Cookie; public index eligibility remains separate |
+| 15 | Critical | Plugin boot ignored `SCHA_Database_Migrator::maybe_upgrade()` errors and continued registering AI endpoints against incomplete schema | Early migration verification; runtime handlers not registered on failure; simulated-migration regression |
+| 16 | Critical | Rolled-back code could treat a newer live database schema as compatible | Version-aware migration rejects future schema before lock/route activation, with rollback parity regression |
+| 17 | High | A stored current schema version could conceal missing tables or columns | Periodic five-minute integrity verification, fail closed on incomplete schema, with isolated parity test |
+
+Source-level test coverage also includes six independently injected corpus DB/outbox failures, verified rollback, and a normal successful approval.
+
+**Important limitations:** An integrity cache may delay detection for up to five minutes; database engine, cross-worker concurrency, production rollback and live re-test still require staging/live evidence. Verified pricing alone does not guarantee provider-side costs, so load/cost-accounting acceptance remains open.
+
 ## Verification performed by branch CI
 
 The `audit/**` GitHub Actions workflow performs PHP 8.3 syntax lint, JavaScript checks, unit/adversarial tests, source contracts, package checks, secrets-pattern scan, deterministic double-build, ZIP extraction/manifest integrity and package upload. New checks include schema-to-DDL validation, cross-account guest IDOR regression, privacy-source checks, expanded 44-example Urdu/English/Arabic safety evaluation and long-Unicode-source chunking.
