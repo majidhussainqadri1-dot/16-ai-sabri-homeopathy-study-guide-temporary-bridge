@@ -5,6 +5,7 @@
  */
 require __DIR__ . '/bootstrap.php';
 define( 'SCHA_ANTHROPIC_API_KEY', 'fixture-credential-not-for-network' );
+function apply_filters( string $name, mixed $value, mixed ...$args ): mixed { return $value; }
 class WP_Error {
     private string $code;
     public function __construct( string $code, string $message ) { $this->code = $code; }
