@@ -17,6 +17,18 @@ $cases = array(
     'Corpus transaction and rollback' => array( 'includes/class-scha-corpus.php', "\$wpdb->query( 'ROLLBACK' )" ),
 );
 $failures = array();
+$json_provider = $read( 'includes/providers/class-scha-provider-http-json.php' );
+if ( ! str_contains( $json_provider, 'scha_http_json_pricing_unavailable' )
+    || ! str_contains( $json_provider, 'scha_http_json_pricing_v1' )
+    || ! str_contains( $json_provider, 'monthly_cost_budget_micros' ) ) {
+    $failures[] = 'Cost-capped HTTP JSON pricing guard missing';
+}
+$claude_provider = $read( 'includes/providers/class-scha-provider-claude.php' );
+if ( ! str_contains( $claude_provider, 'scha_claude_pricing_unavailable' )
+    || ! str_contains( $claude_provider, 'scha_claude_pricing_v1' ) ) {
+    $failures[] = 'Cost-capped Claude pricing guard missing';
+}
+
 $styles = $read( 'assets/css/public.css' );
 if ( ! str_contains( $styles, '--sabri-visual-primary' ) || str_contains( $styles, '--sabri-brand-primary' ) ) {
     $failures[] = 'File 25 canonical visual token contract';
