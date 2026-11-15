@@ -13,6 +13,7 @@ php "$ROOT/tests/guest-session-authorization.php"
 php "$ROOT/tests/v123-multilingual-evaluation.php"
 php "$ROOT/tests/provider-egress-authorization.php"
 php "$ROOT/tests/corpus-failure-contract.php"
+php "$ROOT/tests/claude-pricing-contract.php"
 php "$ROOT/tests/package-contract.php"
 if grep -RInE 'BEGIN (RSA|OPENSSH|EC|DSA) PRIVATE KEY|AKIA[0-9A-Z]{16}|sk-ant-[A-Za-z0-9_-]{20,}' "$ROOT" --exclude-dir=dist; then
   echo 'FAIL: potential secret material found' >&2; exit 1
